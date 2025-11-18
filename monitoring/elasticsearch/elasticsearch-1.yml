@@ -1,0 +1,47 @@
+# Elasticsearch Node 1 Configuration
+# Master-eligible and Data node
+
+cluster.name: ${cluster.name:ai-agent-cluster}
+node.name: es-node-1
+
+# Node roles
+node.roles: [master, data, ingest]
+
+# Discovery configuration
+discovery.seed_hosts: [elasticsearch-2, elasticsearch-3]
+cluster.initial_master_nodes: [es-node-1, es-node-2, es-node-3]
+discovery.type: multi-node
+
+# Network configuration
+network.host: 0.0.0.0
+http.port: 9200
+transport.port: 9300
+
+# Bootstrap checks
+bootstrap.memory_lock: true
+
+# Performance tuning
+indices.memory.index_buffer_size: 40%
+thread_pool.search.queue_size: 5000
+thread_pool.bulk.queue_size: 5000
+thread_pool.bulk.size: 8
+thread_pool.write.queue_size: 5000
+
+# ILM and index management
+xpack.slm.enabled: true
+action.destructive_requires_name: false
+
+# Logging
+logger.level: info
+logger.org.elasticsearch.cluster: info
+logger.org.elasticsearch.node: info
+
+# GC tuning
+# For 2GB heap, tune G1GC
+-XX:+UseG1GC
+-XX:MaxGCPauseMillis=30
+
+# Shards allocation
+cluster.routing.allocation.cluster_concurrent_rebalance: 16
+cluster.routing.allocation.node_concurrent_recoveries: 2
+cluster.max_shards_per_node: 10000

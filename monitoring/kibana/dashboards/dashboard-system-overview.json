@@ -1,0 +1,448 @@
+{
+  "version": "8.11.0",
+  "objects": [
+    {
+      "type": "dashboard",
+      "id": "system-overview-dashboard",
+      "attributes": {
+        "title": "System Overview",
+        "description": "High-level system health and performance monitoring",
+        "timeRestore": true,
+        "timeFrom": "now-24h",
+        "timeTo": "now",
+        "refreshInterval": {
+          "pause": false,
+          "value": 10000
+        },
+        "panels": [
+          {
+            "version": "8.11.0",
+            "type": "visualization",
+            "gridData": {
+              "x": 0,
+              "y": 0,
+              "w": 24,
+              "h": 15
+            },
+            "panelRefName": "panel_1"
+          },
+          {
+            "version": "8.11.0",
+            "type": "visualization",
+            "gridData": {
+              "x": 0,
+              "y": 15,
+              "w": 12,
+              "h": 15
+            },
+            "panelRefName": "panel_2"
+          },
+          {
+            "version": "8.11.0",
+            "type": "visualization",
+            "gridData": {
+              "x": 12,
+              "y": 15,
+              "w": 12,
+              "h": 15
+            },
+            "panelRefName": "panel_3"
+          },
+          {
+            "version": "8.11.0",
+            "type": "visualization",
+            "gridData": {
+              "x": 0,
+              "y": 30,
+              "w": 8,
+              "h": 10
+            },
+            "panelRefName": "panel_4"
+          },
+          {
+            "version": "8.11.0",
+            "type": "visualization",
+            "gridData": {
+              "x": 8,
+              "y": 30,
+              "w": 8,
+              "h": 10
+            },
+            "panelRefName": "panel_5"
+          },
+          {
+            "version": "8.11.0",
+            "type": "visualization",
+            "gridData": {
+              "x": 16,
+              "y": 30,
+              "w": 8,
+              "h": 10
+            },
+            "panelRefName": "panel_6"
+          }
+        ],
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": {
+            "query": {
+              "match_all": {}
+            },
+            "filter": []
+          }
+        }
+      },
+      "references": []
+    },
+    {
+      "type": "visualization",
+      "id": "logs-volume-trend",
+      "attributes": {
+        "title": "Log Volume Trend",
+        "description": "Log ingestion rate over time",
+        "visState": {
+          "title": "Log Volume Trend",
+          "type": "line",
+          "params": {
+            "grid": {
+              "categoryLines": false,
+              "valueAxis": "ValueAxis-1"
+            },
+            "categoryAxes": [
+              {
+                "id": "CategoryAxis-1",
+                "type": "category",
+                "scale": {
+                  "type": "linear"
+                },
+                "labels": {
+                  "show": true,
+                  "truncate": 100
+                },
+                "title": {}
+              }
+            ],
+            "valueAxes": [
+              {
+                "id": "ValueAxis-1",
+                "name": "Left",
+                "type": "value",
+                "scale": {
+                  "type": "linear"
+                },
+                "labels": {
+                  "show": true
+                },
+                "title": {
+                  "text": "Log Count"
+                }
+              }
+            ],
+            "seriesParams": [
+              {
+                "show": true,
+                "type": "line",
+                "interpolate": "linear",
+                "valueAxis": "ValueAxis-1",
+                "drawLinesBetweenPoints": true,
+                "lineWidth": 2,
+                "showCircles": true,
+                "circleRadius": 3
+              }
+            ]
+          },
+          "aggs": [
+            {
+              "id": "1",
+              "enabled": true,
+              "type": "count",
+              "params": {},
+              "schema": "metric"
+            },
+            {
+              "id": "2",
+              "enabled": true,
+              "type": "date_histogram",
+              "params": {
+                "field": "@timestamp",
+                "interval": "auto",
+                "customInterval": "2h",
+                "format": "strict_date_histogram",
+                "min_doc_count": 1,
+                "extended_bounds": {}
+              },
+              "schema": "segment"
+            }
+          ]
+        },
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": {
+            "query": {
+              "match_all": {}
+            },
+            "index": "logs-*"
+          }
+        }
+      }
+    },
+    {
+      "type": "visualization",
+      "id": "error-rate-distribution",
+      "attributes": {
+        "title": "Error Rate Distribution",
+        "description": "Distribution of errors by service and level",
+        "visState": {
+          "title": "Error Rate Distribution",
+          "type": "pie",
+          "params": {
+            "shareYAxis": true,
+            "addTooltip": true,
+            "addLegend": true,
+            "isDonut": true,
+            "legendPosition": "right"
+          },
+          "aggs": [
+            {
+              "id": "1",
+              "enabled": true,
+              "type": "count",
+              "params": {},
+              "schema": "metric"
+            },
+            {
+              "id": "2",
+              "enabled": true,
+              "type": "terms",
+              "params": {
+                "field": "level",
+                "size": 10,
+                "order": "desc",
+                "orderBy": "1",
+                "customLabel": "Log Level"
+              },
+              "schema": "segment"
+            }
+          ]
+        },
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": {
+            "query": {
+              "match": {
+                "level": {
+                  "query": "error",
+                  "type": "phrase"
+                }
+              }
+            },
+            "index": "logs-*",
+            "filter": []
+          }
+        }
+      }
+    },
+    {
+      "type": "visualization",
+      "id": "service-health-status",
+      "attributes": {
+        "title": "Service Health Status",
+        "description": "Health status of all monitored services",
+        "visState": {
+          "title": "Service Health Status",
+          "type": "table",
+          "params": {
+            "perPage": 10,
+            "showPartialRows": false,
+            "showMeticsAtAllLevels": false,
+            "showTotal": false,
+            "totalFunc": "sum",
+            "percentageCol": ""
+          },
+          "aggs": [
+            {
+              "id": "1",
+              "enabled": true,
+              "type": "count",
+              "params": {},
+              "schema": "metric"
+            },
+            {
+              "id": "2",
+              "enabled": true,
+              "type": "terms",
+              "params": {
+                "field": "service",
+                "size": 20,
+                "order": "desc",
+                "orderBy": "1",
+                "customLabel": "Service"
+              },
+              "schema": "bucket"
+            },
+            {
+              "id": "3",
+              "enabled": true,
+              "type": "terms",
+              "params": {
+                "field": "level",
+                "size": 5,
+                "order": "desc",
+                "orderBy": "1",
+                "customLabel": "Log Level"
+              },
+              "schema": "bucket"
+            }
+          ]
+        },
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": {
+            "query": {
+              "match_all": {}
+            },
+            "index": "logs-*"
+          }
+        }
+      }
+    },
+    {
+      "type": "visualization",
+      "id": "error-categories",
+      "attributes": {
+        "title": "Error Categories",
+        "description": "Breakdown of errors by category",
+        "visState": {
+          "title": "Error Categories",
+          "type": "bar",
+          "params": {
+            "grid": {
+              "categoryLines": false,
+              "valueAxis": "ValueAxis-1"
+            },
+            "categoryAxes": [
+              {
+                "id": "CategoryAxis-1",
+                "type": "category",
+                "scale": {
+                  "type": "linear"
+                },
+                "labels": {
+                  "show": true,
+                  "truncate": 100
+                },
+                "title": {}
+              }
+            ],
+            "valueAxes": [
+              {
+                "id": "ValueAxis-1",
+                "name": "Left",
+                "type": "value",
+                "scale": {
+                  "type": "linear"
+                },
+                "labels": {
+                  "show": true
+                },
+                "title": {
+                  "text": "Count"
+                }
+              }
+            ],
+            "seriesParams": [
+              {
+                "show": true,
+                "type": "bars",
+                "interpolate": "linear",
+                "valueAxis": "ValueAxis-1",
+                "drawLinesBetweenPoints": true,
+                "lineWidth": 2
+              }
+            ]
+          },
+          "aggs": [
+            {
+              "id": "1",
+              "enabled": true,
+              "type": "count",
+              "params": {},
+              "schema": "metric"
+            },
+            {
+              "id": "2",
+              "enabled": true,
+              "type": "terms",
+              "params": {
+                "field": "error_category",
+                "size": 10,
+                "order": "desc",
+                "orderBy": "1"
+              },
+              "schema": "segment"
+            }
+          ]
+        },
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": {
+            "query": {
+              "match": {
+                "level": {
+                  "query": "error",
+                  "type": "phrase"
+                }
+              }
+            },
+            "index": "logs-*"
+          }
+        }
+      }
+    },
+    {
+      "type": "visualization",
+      "id": "request-latency",
+      "attributes": {
+        "title": "Request Latency Percentiles",
+        "description": "P50, P95, P99 latency percentiles",
+        "visState": {
+          "title": "Request Latency Percentiles",
+          "type": "metric",
+          "params": {
+            "addTooltip": true,
+            "addLegend": false,
+            "showNumbers": true,
+            "showBigNumber": true,
+            "colorSchema": "Green to Red",
+            "invertColors": true,
+            "metricColorMode": "None"
+          },
+          "aggs": [
+            {
+              "id": "1",
+              "enabled": true,
+              "type": "percentiles",
+              "params": {
+                "field": "duration_ms",
+                "percents": [50, 95, 99]
+              },
+              "schema": "metric"
+            }
+          ]
+        },
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": {
+            "query": {
+              "match_all": {}
+            },
+            "index": "logs-*",
+            "filter": [
+              {
+                "range": {
+                  "duration_ms": {
+                    "gte": 0
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
