@@ -1,0 +1,299 @@
+version: '3.8'
+
+# Enterprise Monitoring Stack for AI Agent RabbitMQ Platform
+# Includes: Prometheus, Grafana, Alertmanager, Node Exporter, and supporting services
+
+services:
+  # Prometheus - Metrics collection and storage
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--storage.tsdb.retention.size=50GB'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+    labels:
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/port=9090"
+
+  # Grafana - Visualization and dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-piechart-panel,redis-datasource
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=${SMTP_HOST:-smtp.gmail.com:587}
+      - GF_SMTP_USER=${SMTP_USER}
+      - GF_SMTP_PASSWORD=${SMTP_PASSWORD}
+      - GF_SMTP_FROM_ADDRESS=${SMTP_FROM_ADDRESS:-alerts@example.com}
+      - GF_ALERTING_ENABLED=true
+      - GF_UNIFIED_ALERTING_ENABLED=true
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+
+  # Alertmanager - Alert routing and management
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--cluster.listen-address=0.0.0.0:9094'
+      - '--web.external-url=http://localhost:9093'
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    ports:
+      - "9093:9093"
+      - "9094:9094"  # Cluster port
+    networks:
+      - monitoring
+
+  # Node Exporter - System metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/host/root'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/root:ro
+    ports:
+      - "9100:9100"
+    networks:
+      - monitoring
+    pid: host
+
+  # cAdvisor - Container metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    privileged: true
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - monitoring
+
+  # PostgreSQL Exporter
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: postgres-exporter
+    restart: unless-stopped
+    environment:
+      - DATA_SOURCE_NAME=postgresql://${DB_USER:-user}:${DB_PASSWORD:-password}@${DB_HOST:-postgres}:5432/${DB_NAME:-aiagent}?sslmode=disable
+      - PG_EXPORTER_DISABLE_DEFAULT_METRICS=false
+      - PG_EXPORTER_DISABLE_SETTINGS_METRICS=false
+      - PG_EXPORTER_AUTO_DISCOVER_DATABASES=true
+    ports:
+      - "9187:9187"
+    networks:
+      - monitoring
+
+  # Redis Exporter
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: redis-exporter
+    restart: unless-stopped
+    environment:
+      - REDIS_ADDR=${REDIS_HOST:-redis}:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    ports:
+      - "9121:9121"
+    networks:
+      - monitoring
+
+  # RabbitMQ Exporter (if not using built-in)
+  rabbitmq-exporter:
+    image: kbudde/rabbitmq-exporter:latest
+    container_name: rabbitmq-exporter
+    restart: unless-stopped
+    environment:
+      - RABBIT_URL=http://${RABBITMQ_HOST:-rabbitmq}:15672
+      - RABBIT_USER=${RABBITMQ_USER:-guest}
+      - RABBIT_PASSWORD=${RABBITMQ_PASSWORD:-guest}
+      - PUBLISH_PORT=9419
+      - OUTPUT_FORMAT=JSON
+    ports:
+      - "9419:9419"
+    networks:
+      - monitoring
+
+  # Blackbox Exporter - Endpoint monitoring
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: blackbox-exporter
+    restart: unless-stopped
+    command:
+      - '--config.file=/config/blackbox.yml'
+    volumes:
+      - ./monitoring/blackbox.yml:/config/blackbox.yml:ro
+    ports:
+      - "9115:9115"
+    networks:
+      - monitoring
+
+  # Loki - Log aggregation (optional)
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki_data:/loki
+    networks:
+      - monitoring
+
+  # Promtail - Log collector for Loki
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    restart: unless-stopped
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./monitoring/promtail.yml:/etc/promtail/config.yml:ro
+    networks:
+      - monitoring
+
+  # Pushgateway - For batch job metrics
+  pushgateway:
+    image: prom/pushgateway:latest
+    container_name: pushgateway
+    restart: unless-stopped
+    ports:
+      - "9091:9091"
+    networks:
+      - monitoring
+
+  # Thanos Sidecar (optional - for long-term storage)
+  thanos-sidecar:
+    image: quay.io/thanos/thanos:latest
+    container_name: thanos-sidecar
+    restart: unless-stopped
+    command:
+      - sidecar
+      - --tsdb.path=/prometheus
+      - --prometheus.url=http://prometheus:9090
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+    volumes:
+      - prometheus_data:/prometheus:ro
+    ports:
+      - "10901:10901"
+      - "10902:10902"
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+
+  # Application with monitoring enabled
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai-agent-app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - METRICS_PORT=9090
+      - HEALTH_PORT=3001
+      - ENABLE_MONITORING=true
+      - PROMETHEUS_PUSHGATEWAY=http://pushgateway:9091
+    ports:
+      - "8000:8000"    # Main app port
+      - "9090:9090"    # Metrics port
+      - "3001:3001"    # Health check port
+    networks:
+      - monitoring
+      - app
+    labels:
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/port=9090"
+      - "prometheus.io/path=/metrics"
+    depends_on:
+      - prometheus
+      - grafana
+
+networks:
+  monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+  app:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  alertmanager_data:
+    driver: local
+  loki_data:
+    driver: local
+
+# Health checks for critical services
+healthcheck:
+  prometheus:
+    test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+
+  grafana:
+    test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+
+  alertmanager:
+    test: ["CMD", "wget", "--spider", "-q", "http://localhost:9093/-/healthy"]
+    interval: 30s
+    timeout: 10s
+    retries: 3

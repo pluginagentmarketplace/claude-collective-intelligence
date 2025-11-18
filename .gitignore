@@ -216,3 +216,97 @@ yarn-error.log*
 coverage/
 *.lcov
 .nyc_output/
+
+# =====================================================
+# Database & Persistence
+# =====================================================
+# Environment files with sensitive data
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Database files and volumes
+*.db
+*.sqlite
+*.sqlite3
+data/
+postgres_data/
+redis_data/
+redis_insight_data/
+
+# Backup files
+backups/
+*.dump
+*.sql
+*.rdb
+*.aof
+*.tar
+*.tar.gz
+
+# =====================================================
+# Logs
+# =====================================================
+logs/
+*.log
+lerna-debug.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.log
+
+# =====================================================
+# IDE & Editor
+# =====================================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# =====================================================
+# OS
+# =====================================================
+.DS_Store
+Thumbs.db
+*.exe
+*.pdb
+
+# =====================================================
+# Temp files
+# =====================================================
+tmp/
+temp/
+*.tmp
+.cache/
+dist/
+build/
+
+# =====================================================
+# Docker
+# =====================================================
+.dockerignore
+docker-compose.override.yml
+
+# =====================================================
+# Monitoring & Metrics
+# =====================================================
+prometheus_data/
+grafana_data/
+pgadmin_data/
+
+# =====================================================
+# RabbitMQ
+# =====================================================
+rabbitmq_data/
+rabbitmq_logs/
