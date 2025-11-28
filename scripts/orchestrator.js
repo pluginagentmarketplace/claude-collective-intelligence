@@ -45,12 +45,12 @@ class AgentOrchestrator {
     // Setup event listeners
     this.client.on('connected', () => {
       console.log('✅ Agent connected to orchestration system');
-      this.publishStatus({ state: 'connected', agentType: this.agentType }, 'agent.status.connected');
+      this.publishStatus({ event: 'connected', agentType: this.agentType }, 'agent.status.connected');
     });
 
     this.client.on('disconnected', () => {
       console.log('⚠️  Agent disconnected from orchestration system');
-      this.publishStatus({ state: 'disconnected', agentType: this.agentType }, 'agent.status.disconnected');
+      this.publishStatus({ event: 'disconnected', agentType: this.agentType }, 'agent.status.disconnected');
     });
 
     this.client.on('error', (error) => {
@@ -143,6 +143,49 @@ class AgentOrchestrator {
   }
 
   /**
+   * Start as Coordinator
+   */
+  async startCoordinator() {
+    console.log('🎯 Starting as COORDINATOR...\n');
+
+    // Coordinators manage workflows - listen for results
+    await this.client.consumeResults('agent.results', async (msg) => {
+      await this.handleResult(msg);
+    });
+
+    // Subscribe to all status updates for agent coordination
+    await this.client.subscribeStatus('agent.status.#', 'agent.status', async (msg) => {
+      await this.handleStatusUpdate(msg);
+    });
+
+    // Can also handle tasks for workflow execution
+    await this.client.consumeTasks('agent.tasks', async (msg, { ack, nack, reject }) => {
+      await this.handleTask(msg, { ack, nack, reject });
+    });
+
+    console.log('🎯 Coordinator ready - managing workflows and dependencies\n');
+  }
+
+  /**
+   * Start as Monitor
+   */
+  async startMonitor() {
+    console.log('📊 Starting as MONITOR...\n');
+
+    // Monitors subscribe to all status updates
+    await this.client.subscribeStatus('agent.status.#', 'agent.status', async (msg) => {
+      await this.handleStatusUpdate(msg);
+    });
+
+    // Monitor results for performance tracking
+    await this.client.consumeResults('agent.results', async (msg) => {
+      await this.handleResult(msg);
+    });
+
+    console.log('📊 Monitor ready - tracking system health and performance\n');
+  }
+
+  /**
    * Assign task (Team Leader function)
    */
   async assignTask(task) {
@@ -220,6 +263,14 @@ class AgentOrchestrator {
       };
 
       await this.publishResult(result);
+
+      // Notify task completion for monitoring
+      await this.publishStatus({
+        event: 'task_completed',
+        taskId: id,
+        task: task.title,
+        duration: result.duration
+      }, 'agent.status.task.completed');
 
       this.activeTasks.delete(id);
       this.stats.tasksCompleted++;
@@ -344,12 +395,23 @@ class AgentOrchestrator {
    * Publish status
    */
   async publishStatus(status, routingKey) {
-    await this.client.publishStatus({
-      ...status,
-      agentId: this.agentId,
-      agentType: this.agentType,
-      stats: this.stats
-    }, routingKey);
+    // Check if client is connected before publishing
+    if (!this.client || !this.client.isConnected) {
+      console.warn('⚠️  Cannot publish status - not connected');
+      return;
+    }
+
+    try {
+      await this.client.publishStatus({
+        ...status,
+        agentId: this.agentId,
+        agentType: this.agentType,
+        stats: this.stats
+      }, routingKey);
+    } catch (error) {
+      console.error(`❌ Failed to publish status: ${error.message}`);
+      // Don't rethrow - allow execution to continue
+    }
   }
 
   /**
@@ -384,7 +446,7 @@ class AgentOrchestrator {
     console.log('\n🛑 Shutting down orchestrator...');
 
     await this.publishStatus({
-      state: 'shutdown',
+      event: 'shutdown',
       finalStats: this.getStats()
     }, 'agent.status.shutdown');
 
@@ -419,8 +481,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     case 'leader':
       await orchestrator.startTeamLeader();
       break;
+    case 'coordinator':
+      await orchestrator.startCoordinator();
+      break;
     case 'collaborator':
       await orchestrator.startCollaborator();
+      break;
+    case 'monitor':
+      await orchestrator.startMonitor();
       break;
     case 'worker':
     default:

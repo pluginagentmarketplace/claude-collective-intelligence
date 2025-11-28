@@ -53,7 +53,7 @@ export class BrainstormSystem extends EventEmitter {
 
     this.agentId = agentId || `agent-${uuidv4()}`;
     this.config = {
-      exchangeName: config.exchangeName || 'brainstorm.exchange',
+      exchangeName: config.exchangeName || 'agent.brainstorm',
       maxIdeasPerAgent: config.maxIdeasPerAgent || 100,
       votingThreshold: config.votingThreshold || 0.7,
       combinationSimilarity: config.combinationSimilarity || 0.8,
@@ -154,7 +154,11 @@ export class BrainstormSystem extends EventEmitter {
 
     // Auto-stop after duration
     if (session.duration > 0) {
-      setTimeout(() => this.stopSession(sessionId), session.duration);
+      setTimeout(() => {
+        this.stopSession(sessionId).catch(error => {
+          console.error(`❌ Error auto-stopping session ${sessionId}:`, error);
+        });
+      }, session.duration);
     }
 
     this.emit('session_started', session);

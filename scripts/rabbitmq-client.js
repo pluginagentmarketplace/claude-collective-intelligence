@@ -13,9 +13,9 @@ export class RabbitMQClient extends EventEmitter {
     super();
     this.config = {
       url: process.env.RABBITMQ_URL || 'amqp://localhost:5672',
-      heartbeat: parseInt(process.env.HEARTBEAT_INTERVAL) || 30,
+      heartbeat: parseInt(process.env.HEARTBEAT_INTERVAL, 10) || 30,
       autoReconnect: process.env.AUTO_RECONNECT !== 'false',
-      prefetchCount: parseInt(process.env.PREFETCH_COUNT) || 1,
+      prefetchCount: parseInt(process.env.PREFETCH_COUNT, 10) || 1,
       ...config
     };
 

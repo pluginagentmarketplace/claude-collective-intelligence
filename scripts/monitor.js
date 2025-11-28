@@ -54,7 +54,7 @@ class MonitorDashboard {
   handleStatusUpdate(msg) {
     const { status } = msg;
 
-    switch (status.event) {
+    switch (status.event || status.state) {
       case 'connected':
         this.metrics.agents.set(status.agentId, {
           type: status.agentType,

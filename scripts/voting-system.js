@@ -170,7 +170,7 @@ export class VotingSystem extends EventEmitter {
       totalVotes: session.votes.length,
       calculatedAt: Date.now(),
       auditTrailHash: this.auditTrail.hashSession(
-        this.auditTrail.votingSessions.get(sessionId)
+        this.auditTrail.votingSessions.get(sessionId) || []
       )
     };
 
@@ -447,7 +447,10 @@ export class VotingSystem extends EventEmitter {
    * Validate quorum requirements
    */
   validateQuorum(votes, config) {
-    const participationRate = votes.length / config.totalAgents;
+    // Guard against division by zero
+    const participationRate = (config?.totalAgents > 0)
+      ? votes.length / config.totalAgents
+      : 0;
     const totalConfidence = votes.reduce((sum, v) => sum + (v.confidence || 1.0), 0);
     const expertVotes = votes.filter(v => (v.agentLevel || 0) >= 4).length;
 
@@ -658,7 +661,7 @@ class VoteAuditTrail {
 
     return session.every(record => {
       const vote = {
-        choice: Array.isArray(record.vote) ? record.vote : record.vote,
+        choice: Array.isArray(record.vote) ? record.vote : [record.vote],
         confidence: record.confidence
       };
       const expectedHash = this.hashVote(
