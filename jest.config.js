@@ -25,6 +25,8 @@ export default {
     'scripts/**/*.js',
     'agents/**/*.js',
     '!scripts/hooks/**',
+    '!scripts/mcp-server.js',
+    '!scripts/monitor.js',
     '!**/node_modules/**',
     '!**/tests/**',
     '!**/coverage/**'
