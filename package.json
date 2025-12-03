@@ -31,6 +31,7 @@
     "test:debug": "node --experimental-vm-modules --inspect-brk node_modules/.bin/jest --runInBand"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
     "amqplib": "^0.10.3",
     "chalk": "^5.3.0",
     "dotenv": "^16.3.1",
