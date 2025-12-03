@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # RabbitMQ Message Broker with Management Plugin
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: ai-agent-rabbitmq
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"   # AMQP protocol
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-admin123}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbit log_levels [{connection,error},{default,error}] disk_free_limit 2147483648
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq_logs:/var/log/rabbitmq
+      - ./docker/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - ai-agent-network
+    restart: unless-stopped
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: ai-agent-postgres
+    hostname: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-aiagent}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aiagent123}
+      POSTGRES_DB: ${POSTGRES_DB:-ai_orchestrator}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aiagent} -d ${POSTGRES_DB:-ai_orchestrator}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - ai-agent-network
+    restart: unless-stopped
+
+  # Redis for Collective Consciousness & Caching
+  redis:
+    image: redis:7-alpine
+    container_name: ai-agent-redis
+    hostname: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis123}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - ai-agent-network
+    restart: unless-stopped
+
+  # Adminer - Lightweight Database Management UI
+  adminer:
+    image: adminer:latest
+    container_name: ai-agent-adminer
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    networks:
+      - ai-agent-network
+    restart: unless-stopped
+    depends_on:
+      - postgres
+
+networks:
+  ai-agent-network:
+    driver: bridge
+    name: ai-agent-network
+
+volumes:
+  rabbitmq_data:
+    name: ai-agent-rabbitmq-data
+  rabbitmq_logs:
+    name: ai-agent-rabbitmq-logs
+  postgres_data:
+    name: ai-agent-postgres-data
+  redis_data:
+    name: ai-agent-redis-data

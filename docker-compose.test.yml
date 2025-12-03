@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # RabbitMQ for test environment
+  rabbitmq-test:
+    image: rabbitmq:3.12-management-alpine
+    container_name: rabbitmq-test
+    ports:
+      - "5673:5672"      # AMQP port (different from production)
+      - "15673:15672"    # Management UI (different from production)
+    environment:
+      RABBITMQ_DEFAULT_USER: test_user
+      RABBITMQ_DEFAULT_PASS: test_password
+      RABBITMQ_DEFAULT_VHOST: test_vhost
+    volumes:
+      - rabbitmq-test-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+  # PostgreSQL for test environment
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: postgres-test
+    ports:
+      - "5433:5432"      # Different from production
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: ai_agents_test
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+      - ./tests/e2e/sql/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d ai_agents_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+  # Redis for caching (optional but useful for tests)
+  redis-test:
+    image: redis:7-alpine
+    container_name: redis-test
+    ports:
+      - "6380:6379"      # Different from production
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+volumes:
+  rabbitmq-test-data:
+  postgres-test-data:
+
+networks:
+  test-network:
+    driver: bridge
