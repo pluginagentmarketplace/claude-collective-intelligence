@@ -887,4 +887,4 @@ class RedisConnectionManager extends EventEmitter {
 const redisConnection = new RedisConnectionManager();
 
 export default redisConnection;
-export { RedisConnectionManager, REDIS_KEYS, TTL_CONFIG };
+export { RedisConnectionManager, TTL_CONFIG };

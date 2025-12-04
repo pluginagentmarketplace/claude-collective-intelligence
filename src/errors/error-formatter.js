@@ -14,7 +14,7 @@ class ErrorFormatter {
       includeCorrelationId: true,
       sanitize: true,
       format: 'standard', // standard, detailed, minimal, custom
-      ...config
+      ...config,
     };
   }
 
@@ -45,8 +45,8 @@ class ErrorFormatter {
       error: {
         code: error.code || 'UNKNOWN_ERROR',
         message: this.getUserFriendlyMessage(error),
-        type: error.name || 'Error'
-      }
+        type: error.name || 'Error',
+      },
     };
 
     // Add optional fields
@@ -94,15 +94,15 @@ class ErrorFormatter {
         type: error.name,
         category: error.category,
         severity: error.severity,
-        statusCode: error.statusCode || 500
+        statusCode: error.statusCode || 500,
       },
       metadata: {
         timestamp: error.timestamp || new Date().toISOString(),
         correlationId: error.correlationId,
         environment: process.env.NODE_ENV,
         host: process.env.HOSTNAME,
-        service: process.env.SERVICE_NAME || 'ai-agent-rabbitmq'
-      }
+        service: process.env.SERVICE_NAME || 'ai-agent-rabbitmq',
+      },
     };
 
     // Add context if requested
@@ -120,7 +120,7 @@ class ErrorFormatter {
       formatted.originalError = {
         message: error.originalError.message,
         type: error.originalError.name,
-        code: error.originalError.code
+        code: error.originalError.code,
       };
     }
 
@@ -129,7 +129,7 @@ class ErrorFormatter {
       formatted.debug = {
         stack: this.formatStackTrace(error.stack),
         file: this.extractFileInfo(error.stack),
-        line: this.extractLineNumber(error.stack)
+        line: this.extractLineNumber(error.stack),
       };
     }
 
@@ -153,7 +153,7 @@ class ErrorFormatter {
   formatMinimal(error, options) {
     return {
       error: this.getUserFriendlyMessage(error),
-      code: error.code || 'ERROR'
+      code: error.code || 'ERROR',
     };
   }
 
@@ -185,15 +185,15 @@ class ErrorFormatter {
         message: error.message,
         category: error.category,
         severity: error.severity,
-        stack: error.stack
+        stack: error.stack,
       },
       context: this.sanitizeContext(context),
       correlationId: error.correlationId,
       metadata: {
         environment: process.env.NODE_ENV,
         service: process.env.SERVICE_NAME,
-        version: process.env.APP_VERSION
-      }
+        version: process.env.APP_VERSION,
+      },
     };
   }
 
@@ -212,13 +212,13 @@ class ErrorFormatter {
         environment: process.env.NODE_ENV,
         service: process.env.SERVICE_NAME,
         category: error.category,
-        severity: error.severity
+        severity: error.severity,
       },
       fields: {
         status_code: error.statusCode,
         retry_count: error.retryCount || 0,
-        recovered: error.recovered || false
-      }
+        recovered: error.recovered || false,
+      },
     };
   }
 
@@ -234,7 +234,7 @@ class ErrorFormatter {
       field: err.field || err.path,
       message: err.message,
       value: process.env.NODE_ENV === 'production' ? '[REDACTED]' : err.value,
-      constraint: err.constraint || err.type
+      constraint: err.constraint || err.type,
     }));
   }
 
@@ -247,7 +247,7 @@ class ErrorFormatter {
     const info = {
       attempted: true,
       success: recovery.success,
-      strategy: recovery.strategy
+      strategy: recovery.strategy,
     };
 
     if (recovery.success) {
@@ -301,7 +301,7 @@ class ErrorFormatter {
       /token["\s]*[:=]["\s]*["'][^"']+["']/gi,
       /api[_-]?key["\s]*[:=]["\s]*["'][^"']+["']/gi,
       /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g,
-      /\b\d{3}-\d{2}-\d{4}\b/g
+      /\b\d{3}-\d{2}-\d{4}\b/g,
     ];
 
     let sanitized = message;
@@ -311,7 +311,7 @@ class ErrorFormatter {
 
     // Remove file paths in production
     if (process.env.NODE_ENV === 'production') {
-      sanitized = sanitized.replace(/\/[\w\/\-\.]+/g, '[PATH]');
+      sanitized = sanitized.replace(/\/[\w/\-.]+/g, '[PATH]');
     }
 
     return sanitized;
@@ -381,7 +381,7 @@ class ErrorFormatter {
       return {
         path: match[1],
         line: parseInt(match[2]),
-        column: parseInt(match[3])
+        column: parseInt(match[3]),
       };
     }
 
@@ -462,7 +462,7 @@ class ErrorFormatter {
       'CRITICAL': 'error',
       'HIGH': 'error',
       'MEDIUM': 'warn',
-      'LOW': 'info'
+      'LOW': 'info',
     };
 
     return severityToLevel[error.severity] || 'error';
@@ -514,7 +514,7 @@ class ErrorFormatter {
       red: '\x1b[31m',
       yellow: '\x1b[33m',
       reset: '\x1b[0m',
-      bold: '\x1b[1m'
+      bold: '\x1b[1m',
     };
 
     let output = `${colors.red}${colors.bold}✖ Error: ${error.code}${colors.reset}\n`;
