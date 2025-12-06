@@ -3,51 +3,57 @@
  * Comprehensive tests for collaborative brainstorming functionality
  */
 
-import { jest } from '@jest/globals';
-import { BrainstormSystem, IdeaCategory, MessageType } from '../../scripts/brainstorm-system.js';
+import { jest, beforeAll, beforeEach, afterEach, describe, test, expect } from '@jest/globals';
 
-// Mock RabbitMQClient
-const mockChannel = {
-  prefetch: jest.fn().mockResolvedValue(undefined),
-  assertQueue: jest.fn().mockResolvedValue({ queue: 'test-queue' }),
-  assertExchange: jest.fn().mockResolvedValue({ exchange: 'test-exchange' }),
-  bindQueue: jest.fn().mockResolvedValue(undefined),
-  sendToQueue: jest.fn().mockReturnValue(true),
-  publish: jest.fn().mockReturnValue(true),
-  consume: jest.fn().mockResolvedValue({ consumerTag: 'test-consumer' }),
-  ack: jest.fn(),
-  nack: jest.fn(),
-  reject: jest.fn(),
-  close: jest.fn().mockResolvedValue(undefined),
+// Create mock RabbitMQClient instance
+const mockRabbitMQClient = {
+  connect: jest.fn().mockResolvedValue({}),
+  close: jest.fn().mockResolvedValue({}),
+  setupBrainstormExchange: jest.fn().mockResolvedValue({
+    exchange: 'test.brainstorm',
+    queueName: 'test-queue'
+  }),
+  listenBrainstorm: jest.fn().mockResolvedValue({ consumerTag: 'test-consumer' }),
+  broadcastBrainstorm: jest.fn().mockResolvedValue(true),
+  publishBrainstorm: jest.fn().mockResolvedValue(true),
+  isConnected: true,
+  agentId: 'test-agent',
   on: jest.fn(),
+  emit: jest.fn()
 };
 
-const mockConnection = {
-  createChannel: jest.fn().mockResolvedValue(mockChannel),
-  close: jest.fn().mockResolvedValue(undefined),
-  on: jest.fn(),
-};
+// Mock RabbitMQClient constructor
+const MockRabbitMQClient = jest.fn().mockImplementation(() => mockRabbitMQClient);
 
-jest.unstable_mockModule('amqplib', () => ({
-  default: {
-    connect: jest.fn().mockResolvedValue(mockConnection),
-  },
-  connect: jest.fn().mockResolvedValue(mockConnection),
-}));
+// Dynamic imports for modules that depend on RabbitMQClient
+let BrainstormSystem, IdeaCategory, MessageType;
 
 describe('BrainstormSystem', () => {
   let system;
-  let amqp;
+
+  beforeAll(async () => {
+    // Reset modules and set up mock BEFORE importing
+    jest.resetModules();
+
+    // Mock the rabbitmq-client module
+    jest.unstable_mockModule('../../scripts/rabbitmq-client.js', () => ({
+      RabbitMQClient: MockRabbitMQClient
+    }));
+
+    // Import modules AFTER mock is set up
+    const brainstormModule = await import('../../scripts/brainstorm-system.js');
+    BrainstormSystem = brainstormModule.BrainstormSystem;
+    IdeaCategory = brainstormModule.IdeaCategory;
+    MessageType = brainstormModule.MessageType;
+  });
 
   beforeEach(async () => {
-    // Import after mocking
-    const amqpModule = await import('amqplib');
-    amqp = amqpModule.default;
-
     // Reset all mocks
     jest.clearAllMocks();
-    mockConnection.on.mockClear();
-    mockChannel.on.mockClear();
+    MockRabbitMQClient.mockClear();
+    Object.values(mockRabbitMQClient).forEach(fn => {
+      if (typeof fn === 'function' && fn.mockClear) fn.mockClear();
+    });
 
     system = new BrainstormSystem('test-agent-1', {
       exchangeName: 'test.brainstorm',

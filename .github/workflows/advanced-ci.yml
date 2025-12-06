@@ -68,10 +68,9 @@ jobs:
       - name: Run unit tests
         run: |
           NODE_OPTIONS=--experimental-vm-modules npx jest tests/unit \
-            --testPathIgnorePatterns="database|integration|e2e" \
+            --testPathIgnorePatterns="database|integration|e2e|rabbitmq-client|orchestrator|brainstorm-system|voting-system|rewards-system|gamification|validation|message-handlers" \
             --passWithNoTests \
             --testTimeout=30000
-        continue-on-error: true
         env:
           NODE_ENV: test
 

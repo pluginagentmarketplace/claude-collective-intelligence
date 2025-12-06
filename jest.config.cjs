@@ -11,6 +11,8 @@ module.exports = {
   transform: {},
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
+    // Mock external services for unit tests
+    '^amqplib$': '<rootDir>/tests/__mocks__/amqplib.js',
   },
 
   // Coverage configuration

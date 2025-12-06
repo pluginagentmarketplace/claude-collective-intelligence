@@ -5,6 +5,116 @@
 
 import { jest } from '@jest/globals';
 
+// ==============================================================
+// MOCK EXTERNAL SERVICES (Must be before any imports that use them)
+// ==============================================================
+
+// Mock amqplib for RabbitMQ-dependent tests
+jest.unstable_mockModule('amqplib', () => {
+  const mockState = {
+    connections: [],
+    channels: [],
+    queues: new Map(),
+    messages: [],
+    lastPublished: null
+  };
+
+  function createMockChannel() {
+    return {
+      assertQueue: jest.fn().mockResolvedValue({ queue: 'test-queue', messageCount: 0, consumerCount: 0 }),
+      assertExchange: jest.fn().mockResolvedValue({}),
+      bindQueue: jest.fn().mockResolvedValue({}),
+      unbindQueue: jest.fn().mockResolvedValue({}),
+      publish: jest.fn().mockReturnValue(true),
+      sendToQueue: jest.fn().mockReturnValue(true),
+      consume: jest.fn().mockResolvedValue({ consumerTag: 'test-consumer' }),
+      cancel: jest.fn().mockResolvedValue({}),
+      ack: jest.fn(),
+      nack: jest.fn(),
+      reject: jest.fn(),
+      prefetch: jest.fn(),
+      close: jest.fn().mockResolvedValue({}),
+      on: jest.fn(),
+      once: jest.fn(),
+      removeListener: jest.fn(),
+      checkQueue: jest.fn().mockResolvedValue({ queue: 'test-queue', messageCount: 0, consumerCount: 0 }),
+      deleteQueue: jest.fn().mockResolvedValue({ messageCount: 0 }),
+      purgeQueue: jest.fn().mockResolvedValue({ messageCount: 0 }),
+      get: jest.fn().mockResolvedValue(false)
+    };
+  }
+
+  function createMockConnection() {
+    return {
+      createChannel: jest.fn().mockResolvedValue(createMockChannel()),
+      createConfirmChannel: jest.fn().mockResolvedValue(createMockChannel()),
+      close: jest.fn().mockResolvedValue({}),
+      on: jest.fn(),
+      once: jest.fn(),
+      removeListener: jest.fn()
+    };
+  }
+
+  const connect = jest.fn().mockResolvedValue(createMockConnection());
+
+  return {
+    default: { connect, mockState },
+    connect,
+    mockState
+  };
+});
+
+// Mock ioredis for Redis-dependent tests
+jest.unstable_mockModule('ioredis', () => {
+  const mockRedis = {
+    get: jest.fn().mockResolvedValue(null),
+    set: jest.fn().mockResolvedValue('OK'),
+    del: jest.fn().mockResolvedValue(1),
+    keys: jest.fn().mockResolvedValue([]),
+    expire: jest.fn().mockResolvedValue(1),
+    hget: jest.fn().mockResolvedValue(null),
+    hset: jest.fn().mockResolvedValue(1),
+    hgetall: jest.fn().mockResolvedValue({}),
+    incr: jest.fn().mockResolvedValue(1),
+    zadd: jest.fn().mockResolvedValue(1),
+    zrange: jest.fn().mockResolvedValue([]),
+    publish: jest.fn().mockResolvedValue(1),
+    subscribe: jest.fn().mockResolvedValue(1),
+    on: jest.fn(),
+    quit: jest.fn().mockResolvedValue('OK'),
+    disconnect: jest.fn()
+  };
+  return {
+    default: jest.fn(() => mockRedis),
+    Redis: jest.fn(() => mockRedis)
+  };
+});
+
+// Mock pg for PostgreSQL-dependent tests
+jest.unstable_mockModule('pg', () => {
+  const mockClient = {
+    query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+    connect: jest.fn().mockResolvedValue({}),
+    release: jest.fn(),
+    end: jest.fn().mockResolvedValue({})
+  };
+  const mockPool = {
+    query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+    connect: jest.fn().mockResolvedValue(mockClient),
+    end: jest.fn().mockResolvedValue({}),
+    on: jest.fn()
+  };
+  return {
+    default: { Pool: jest.fn(() => mockPool), Client: jest.fn(() => mockClient) },
+    Pool: jest.fn(() => mockPool),
+    Client: jest.fn(() => mockClient)
+  };
+});
+
+// ==============================================================
+// ENVIRONMENT VARIABLES
+// ==============================================================
+
 // Set test environment variables
 process.env.NODE_ENV = 'test';
 process.env.RABBITMQ_HOST = 'localhost';
