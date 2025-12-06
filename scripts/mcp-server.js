@@ -158,7 +158,7 @@ async function setupResultListener() {
 // Create MCP Server
 const server = new Server(
   {
-    name: 'rabbitmq-orchestrator',
+    name: 'claude-collective-intelligence',
     version: '1.0.0',
   },
   {
@@ -882,7 +882,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error('RabbitMQ MCP Server started');
+  console.error('Claude Collective Intelligence MCP Server started');
 }
 
 main().catch((error) => {

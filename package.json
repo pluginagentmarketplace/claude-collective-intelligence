@@ -1,7 +1,7 @@
 {
-  "name": "claude-swarm",
+  "name": "claude-collective-intelligence",
   "version": "1.0.0",
-  "description": "Multi-Agent Orchestration for Claude Code - Transform isolated sessions into collaborative AI teams via RabbitMQ",
+  "description": "AI Agent Swarm Framework - Transform isolated Claude Code sessions into collaborative AI teams with brainstorming, voting, mentorship, and battle systems",
   "main": "scripts/orchestrator.js",
   "type": "module",
   "scripts": {

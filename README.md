@@ -1,10 +1,23 @@
-# 🐝 claude-swarm
+# 🧠 Claude Collective Intelligence
 
-### Multi-Agent Orchestration for Claude Code
+### AI Agent Swarm Framework for Claude Code
 
-**Transform isolated Claude Code sessions into collaborative AI teams** via RabbitMQ message queues. Real-time communication, task distribution, brainstorming, and democratic voting - all powered by distributed agent architecture.
+**Transform isolated Claude Code sessions into a collaborative AI collective** via RabbitMQ message queues. Brainstorming, democratic voting, mentorship acceleration, competitive battles, and gamification - achieving emergent intelligence greater than any single agent.
 
-> *"Swarm Intelligence: When multiple Claude instances work together, the whole becomes greater than the sum of its parts."*
+> *"Collective Intelligence: When multiple Claude instances collaborate through brainstorming, voting, and mentorship, the whole becomes exponentially greater than the sum of its parts."*
+
+## 🎯 8 AI Mechanisms
+
+| Mechanism | Description |
+|-----------|-------------|
+| 🧠 **Brainstorm** | Multi-agent idea generation & combination |
+| 🗳️ **Voting** | 5 algorithms (Simple, Confidence, Quadratic, Consensus, Ranked) |
+| 🎁 **Rewards** | Gamification with tiers (Bronze → Silver → Gold → Platinum) |
+| ⚠️ **Penalties** | 6 progressive levels + retraining curriculum |
+| 🎓 **Mentorship** | 10x training acceleration (30 days → 3 days) |
+| ⚔️ **Battle** | 1v1 duels, Speed Race, Leaderboards, Hall of Fame |
+| 📊 **Leaderboard** | ELO ratings, rankings, performance tracking |
+| 🎭 **Orchestrator** | Task distribution, agent coordination |
 
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
@@ -197,11 +210,11 @@ node scripts/orchestrator.js monitor
 
 ```bash
 # Clone to your Claude Code plugins directory
-git clone https://github.com/umitkacar/plugin-ai-agent-rabbitmq.git \
-  ~/.claude-code/plugins/ai-agent-orchestrator-rabbitmq
+git clone https://github.com/umitkacar/claude-collective-intelligence.git \
+  ~/.claude-code/plugins/claude-collective-intelligence
 
 # Or use locally
-# In Claude Code, load from ./plugin-ai-agent-rabbitmq
+# In Claude Code, load from ./claude-collective-intelligence
 ```
 
 ### Slash Commands
@@ -575,8 +588,8 @@ Proprietary License - Copyright (c) 2025 Dr. Umit Kacar - see [LICENSE](LICENSE)
 
 ```bash
 # 1. Clone
-git clone https://github.com/umitkacar/plugin-ai-agent-rabbitmq.git
-cd plugin-ai-agent-rabbitmq
+git clone https://github.com/umitkacar/claude-collective-intelligence.git
+cd claude-collective-intelligence
 
 # 2. Install
 npm install
