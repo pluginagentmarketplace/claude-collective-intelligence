@@ -100,6 +100,17 @@
     "distributed-ai",
     "claude-code"
   ],
-  "author": "Dr. Umit Kacar <kacarumit.phd@gmail.com>",
-  "license": "SEE LICENSE IN LICENSE"
+  "author": "Muhsin Elcicek & Dr. Umit Kacar",
+  "contributors": [
+    {
+      "name": "Muhsin Elcicek",
+      "role": "Senior Software Architect"
+    },
+    {
+      "name": "Dr. Umit Kacar",
+      "email": "kacarumit.phd@gmail.com",
+      "role": "Senior AI Researcher & Engineer"
+    }
+  ],
+  "license": "MIT"
 }

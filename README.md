@@ -19,7 +19,7 @@
 | 📊 **Leaderboard** | ELO ratings, rankings, performance tracking |
 | 🎭 **Orchestrator** | Task distribution, agent coordination |
 
-[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
 [![RabbitMQ](https://img.shields.io/badge/RabbitMQ-%3E%3D3.12.0-orange)](https://www.rabbitmq.com/)
 
@@ -210,7 +210,7 @@ node scripts/orchestrator.js monitor
 
 ```bash
 # Clone to your Claude Code plugins directory
-git clone https://github.com/umitkacar/claude-collective-intelligence.git \
+git clone https://github.com/pluginagentmarketplace/claude-collective-intelligence.git \
   ~/.claude-code/plugins/claude-collective-intelligence
 
 # Or use locally
@@ -553,7 +553,13 @@ This is an ultra-powerful orchestration system! Contributions welcome:
 
 ## 📝 License
 
-Proprietary License - Copyright (c) 2025 Dr. Umit Kacar - see [LICENSE](LICENSE) file
+MIT License - Copyright (c) 2025 Muhsin Elcicek & Dr. Umit Kacar
+
+**Authors:**
+- **Muhsin Elcicek** - Senior Software Architect
+- **Dr. Umit Kacar** - Senior AI Researcher & Engineer
+
+See [LICENSE](LICENSE) file for details.
 
 ## 🌟 Features Summary
 
@@ -588,7 +594,7 @@ Proprietary License - Copyright (c) 2025 Dr. Umit Kacar - see [LICENSE](LICENSE)
 
 ```bash
 # 1. Clone
-git clone https://github.com/umitkacar/claude-collective-intelligence.git
+git clone https://github.com/pluginagentmarketplace/claude-collective-intelligence.git
 cd claude-collective-intelligence
 
 # 2. Install
