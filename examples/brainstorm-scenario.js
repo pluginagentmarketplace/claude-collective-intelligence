@@ -13,7 +13,7 @@
  *   node examples/brainstorm-scenario.js
  */
 
-import { BrainstormSystem, IdeaCategory } from '../scripts/brainstorm-system.js';
+import { BrainstormSystem, IdeaCategory } from '../src/systems/brainstorm/system.js';
 import chalk from 'chalk';
 
 // Configuration

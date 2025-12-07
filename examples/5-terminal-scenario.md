@@ -35,7 +35,7 @@ cd ~/plugin-ai-agent-rabbitmq
 npm install
 
 # Start as team leader
-node scripts/orchestrator.js team-leader
+node src/core/orchestrator.js team-leader
 ```
 
 **Output:**
@@ -81,7 +81,7 @@ await orchestrator.assignTask({
 cd ~/plugin-ai-agent-rabbitmq
 
 # Start as worker
-AGENT_NAME="Backend-Worker" node scripts/orchestrator.js worker
+AGENT_NAME="Backend-Worker" node src/core/orchestrator.js worker
 ```
 
 **Output:**
@@ -112,7 +112,7 @@ Agent Name: Backend-Worker
 cd ~/plugin-ai-agent-rabbitmq
 
 # Start as collaborator
-AGENT_NAME="Frontend-Expert" node scripts/orchestrator.js collaborator
+AGENT_NAME="Frontend-Expert" node src/core/orchestrator.js collaborator
 ```
 
 **Output:**
@@ -147,7 +147,7 @@ Agent Name: Frontend-Expert
 cd ~/plugin-ai-agent-rabbitmq
 
 # Start as collaborator
-AGENT_NAME="DevOps-Expert" node scripts/orchestrator.js collaborator
+AGENT_NAME="DevOps-Expert" node src/core/orchestrator.js collaborator
 ```
 
 **Output:**
@@ -225,7 +225,7 @@ Agent Name: DevOps-Expert
 cd ~/plugin-ai-agent-rabbitmq
 
 # Start another worker
-AGENT_NAME="Database-Worker" node scripts/orchestrator.js worker
+AGENT_NAME="Database-Worker" node src/core/orchestrator.js worker
 ```
 
 **Assign a task that will fail:**
@@ -361,7 +361,7 @@ done
 Run in each terminal:
 ```bash
 # Start agent in background
-node scripts/orchestrator.js worker &
+node src/core/orchestrator.js worker &
 
 # Keep active in foreground
 ./scripts/keep-active.sh

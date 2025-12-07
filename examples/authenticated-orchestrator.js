@@ -4,8 +4,8 @@
  * Shows how to integrate authentication with the agent orchestrator
  */
 
-import { RabbitMQClient } from '../scripts/rabbitmq-client.js';
-import AgentOrchestrator from '../scripts/orchestrator.js';
+import { RabbitMQClient } from '../src/core/rabbitmq-client.js';
+import AgentOrchestrator from '../src/core/orchestrator.js';
 import jwtHandler from '../src/auth/jwt-handler.js';
 import rbacManager from '../src/auth/rbac-manager.js';
 import authMiddleware from '../src/auth/middleware.js';

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "rabbitmq-orchestrator": {
+      "command": "node",
+      "args": ["../../src/core/mcp-server.js"],
+      "env": {
+        "RABBITMQ_URL": "${RABBITMQ_URL}"
+      }
+    }
+  }
+}

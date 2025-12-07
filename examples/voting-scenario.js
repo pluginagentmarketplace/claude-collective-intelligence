@@ -17,8 +17,8 @@
  * - Marketing Agent (Level 3): Brand impact and messaging
  */
 
-import RabbitMQClient from '../scripts/rabbitmq-client.js';
-import VotingSystem from '../scripts/voting-system.js';
+import RabbitMQClient from '../src/core/rabbitmq-client.js';
+import VotingSystem from '../src/systems/voting/system.js';
 
 // ANSI color codes
 const colors = {

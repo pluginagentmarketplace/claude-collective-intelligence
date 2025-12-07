@@ -1,0 +1,366 @@
+# Prometheus Alert Rules
+# Generated: 2025-12-07 (Week 2 Phase 4 - Infrastructure Organization)
+# Referenced by: docker-compose.monitoring.yml
+# Documentation: https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/
+
+groups:
+  # ============================================
+  # Service Availability Alerts
+  # ============================================
+  - name: service_availability
+    interval: 30s
+    rules:
+      - alert: ServiceDown
+        expr: up{job=~"postgres|rabbitmq|redis|orchestrator"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: availability
+        annotations:
+          summary: "Service {{ $labels.instance }} ({{ $labels.job }}) is down"
+          description: "{{ $labels.job }} on {{ $labels.instance }} has been down for more than 2 minutes. CRITICAL!"
+          runbook: "Check service logs, restart if necessary"
+
+      - alert: ServiceFlapping
+        expr: changes(up{job=~"postgres|rabbitmq|redis"}[5m]) > 3
+        for: 5m
+        labels:
+          severity: warning
+          category: stability
+        annotations:
+          summary: "Service {{ $labels.instance }} is flapping"
+          description: "{{ $labels.job }} has restarted {{ $value }} times in the last 5 minutes"
+
+  # ============================================
+  # RabbitMQ Alerts
+  # ============================================
+  - name: rabbitmq_alerts
+    interval: 30s
+    rules:
+      - alert: RabbitMQDown
+        expr: rabbitmq_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: messaging
+        annotations:
+          summary: "RabbitMQ instance is down"
+          description: "RabbitMQ on {{ $labels.instance }} is unreachable"
+
+      - alert: RabbitMQHighQueueSize
+        expr: rabbitmq_queue_messages > 10000
+        for: 5m
+        labels:
+          severity: warning
+          category: messaging
+        annotations:
+          summary: "RabbitMQ queue {{ $labels.queue }} is growing"
+          description: "Queue {{ $labels.queue }} has {{ $value }} messages (threshold: 10000)"
+
+      - alert: RabbitMQMemoryHigh
+        expr: rabbitmq_node_mem_used / rabbitmq_node_mem_limit > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "RabbitMQ memory usage is high"
+          description: "RabbitMQ is using {{ $value | humanizePercentage }} of available memory"
+
+      - alert: RabbitMQDiskSpaceLow
+        expr: rabbitmq_node_disk_free < 2147483648
+        for: 5m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "RabbitMQ disk space is low"
+          description: "RabbitMQ has only {{ $value | humanize1024 }}B free disk space (threshold: 2GB)"
+
+      - alert: RabbitMQConsumerDown
+        expr: rabbitmq_queue_consumers == 0
+        for: 10m
+        labels:
+          severity: warning
+          category: messaging
+        annotations:
+          summary: "RabbitMQ queue {{ $labels.queue }} has no consumers"
+          description: "Messages may be accumulating without being processed"
+
+  # ============================================
+  # PostgreSQL Alerts
+  # ============================================
+  - name: postgres_alerts
+    interval: 30s
+    rules:
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "PostgreSQL instance is down"
+          description: "PostgreSQL on {{ $labels.instance }} is unreachable"
+
+      - alert: PostgreSQLHighConnections
+        expr: sum(pg_stat_activity_count) > 200
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "PostgreSQL has high number of connections"
+          description: "Current connections: {{ $value }} (threshold: 200)"
+
+      - alert: PostgreSQLSlowQueries
+        expr: rate(pg_stat_activity_max_tx_duration[5m]) > 60
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "PostgreSQL has slow queries"
+          description: "Long-running queries detected (> 60 seconds)"
+
+      - alert: PostgreSQLDeadlocks
+        expr: increase(pg_stat_database_deadlocks[1h]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "PostgreSQL deadlocks detected"
+          description: "{{ $value }} deadlocks in the last hour"
+
+  # ============================================
+  # Redis Alerts
+  # ============================================
+  - name: redis_alerts
+    interval: 30s
+    rules:
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: cache
+        annotations:
+          summary: "Redis instance is down"
+          description: "Redis on {{ $labels.instance }} is unreachable"
+
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          category: cache
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis is using {{ $value | humanizePercentage }} of maxmemory"
+
+      - alert: RedisEvictionIncreased
+        expr: increase(redis_evicted_keys_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          category: cache
+        annotations:
+          summary: "Redis is evicting keys rapidly"
+          description: "{{ $value }} keys evicted in the last 5 minutes"
+
+  # ============================================
+  # System Resource Alerts
+  # ============================================
+  - name: system_resources
+    interval: 30s
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value | humanize }}% (threshold: 80%)"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is {{ $value | humanizePercentage }} (threshold: 90%)"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.1
+        for: 5m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "Disk space low on {{ $labels.instance }}"
+          description: "Only {{ $value | humanizePercentage }} free disk space remaining (threshold: 10%)"
+
+      - alert: DiskSpaceCritical
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.05
+        for: 1m
+        labels:
+          severity: critical
+          category: resources
+        annotations:
+          summary: "CRITICAL: Disk space almost full on {{ $labels.instance }}"
+          description: "Only {{ $value | humanizePercentage }} free disk space! Immediate action required!"
+
+      - alert: HighDiskIOWait
+        expr: rate(node_disk_io_time_seconds_total[5m]) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High disk I/O wait on {{ $labels.instance }}"
+          description: "Disk I/O wait is {{ $value | humanize }}s"
+
+  # ============================================
+  # Application-Specific Alerts
+  # ============================================
+  - name: orchestrator_alerts
+    interval: 30s
+    rules:
+      - alert: OrchestratorHighTaskBacklog
+        expr: orchestrator_task_queue_size > 100
+        for: 5m
+        labels:
+          severity: warning
+          category: application
+        annotations:
+          summary: "Orchestrator has high task backlog"
+          description: "{{ $value }} tasks pending (threshold: 100)"
+
+      - alert: OrchestratorTaskFailureRate
+        expr: rate(orchestrator_task_failures_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          category: application
+        annotations:
+          summary: "High task failure rate"
+          description: "{{ $value | humanize }} tasks failing per second"
+
+      - alert: AgentUnavailable
+        expr: orchestrator_agents_available < 2
+        for: 5m
+        labels:
+          severity: warning
+          category: application
+        annotations:
+          summary: "Insufficient agents available"
+          description: "Only {{ $value }} agents available (threshold: 2)"
+
+  # ============================================
+  # Network & Connectivity Alerts
+  # ============================================
+  - name: network_alerts
+    interval: 30s
+    rules:
+      - alert: HighNetworkTraffic
+        expr: rate(node_network_receive_bytes_total[5m]) > 100000000
+        for: 10m
+        labels:
+          severity: warning
+          category: network
+        annotations:
+          summary: "High network traffic on {{ $labels.instance }}"
+          description: "Receiving {{ $value | humanize1024 }}B/s (threshold: 100MB/s)"
+
+      - alert: NetworkInterfaceDown
+        expr: node_network_up{device!~"lo|veth.*"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: network
+        annotations:
+          summary: "Network interface {{ $labels.device }} is down on {{ $labels.instance }}"
+
+  # ============================================
+  # Security & Compliance Alerts
+  # ============================================
+  - name: security_alerts
+    interval: 30s
+    rules:
+      - alert: TooManyFailedLogins
+        expr: rate(auth_failures_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "High rate of failed authentication attempts"
+          description: "{{ $value | humanize }} failed logins per second"
+
+      - alert: UnauthorizedAccessAttempt
+        expr: increase(unauthorized_access_total[5m]) > 10
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Multiple unauthorized access attempts detected"
+          description: "{{ $value }} unauthorized access attempts in 5 minutes"
+
+  # ============================================
+  # Docker Container Alerts
+  # ============================================
+  - name: container_alerts
+    interval: 30s
+    rules:
+      - alert: ContainerDown
+        expr: absent(container_last_seen{name=~"agent.*|postgres|rabbitmq|redis"})
+        for: 2m
+        labels:
+          severity: warning
+          category: containers
+        annotations:
+          summary: "Container {{ $labels.name }} is not running"
+
+      - alert: ContainerHighMemory
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          category: containers
+        annotations:
+          summary: "Container {{ $labels.name }} is using high memory"
+          description: "Memory usage: {{ $value | humanizePercentage }}"
+
+      - alert: ContainerRestarting
+        expr: increase(container_restart_count[1h]) > 3
+        for: 5m
+        labels:
+          severity: warning
+          category: containers
+        annotations:
+          summary: "Container {{ $labels.name }} is restarting frequently"
+          description: "{{ $value }} restarts in the last hour"
+
+# ============================================
+# Alert Severity Levels
+# ============================================
+#
+# critical - Immediate attention required (paging)
+# warning - Should be investigated (email/slack)
+# info - Informational only (logging)
+#
+# ============================================
+# Runbook Links
+# ============================================
+#
+# Add runbook_url annotation for operational guides:
+# annotations:
+#   runbook_url: "https://wiki.example.com/runbooks/service-down"
+#
+# ============================================

@@ -7,22 +7,34 @@ module.exports = {
   testEnvironment: 'node',
   testMatch: ['**/tests/**/*.test.js', '**/tests/**/*.spec.js'],
 
+  // Ignore K6 performance tests (run separately with k6 CLI)
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/tests/performance/',
+    '/docs/examples/test-templates/'
+  ],
+
   // ESM Support (package.json has "type": "module")
   transform: {},
+  // Note: moduleNameMapper for .js stripping removed - ESM requires .js extensions
+  // .js extension already inferred from package.json "type": "module"
   moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1',
     // Mock external services for unit tests
     '^amqplib$': '<rootDir>/tests/__mocks__/amqplib.js',
   },
 
-  // Coverage configuration
+  // Coverage configuration (updated for new structure - Week 2 Phase 3)
   collectCoverageFrom: [
+    // Core application code
+    'src/**/*.js',
+    // Scripts (deployment, infrastructure, etc.)
     'scripts/**/*.js',
-    'agents/**/*.js',
-    '!scripts/hooks/**',
+    // Exclude test files
     '!**/node_modules/**',
     '!**/tests/**',
-    '!**/coverage/**'
+    '!**/coverage/**',
+    '!**/docs/**',
+    '!**/examples/**'
   ],
 
   // Coverage threshold temporarily disabled - needs test improvements

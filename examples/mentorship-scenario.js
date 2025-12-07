@@ -11,7 +11,7 @@
  * - 10x training acceleration (30 days → 3 days)
  */
 
-import RabbitMQClient from '../scripts/rabbitmq-client.js';
+import RabbitMQClient from '../src/core/rabbitmq-client.js';
 import MentorshipSystem from '../scripts/mentorship-system.js';
 import {
   TransferType,

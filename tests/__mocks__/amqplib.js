@@ -1,8 +1,11 @@
 /**
  * Mock amqplib for Jest unit tests
  * Prevents real RabbitMQ connection attempts
+ *
+ * Uses EventEmitter for proper event handling
  */
 import { jest } from '@jest/globals';
+import { EventEmitter } from 'events';
 
 // Store for test inspection
 export const mockState = {
@@ -26,99 +29,99 @@ export function resetMockState() {
   mockState.lastPublished = null;
 }
 
-// Mock channel implementation
+// Mock channel implementation (extends EventEmitter)
 function createMockChannel() {
-  const channel = {
-    assertQueue: jest.fn().mockImplementation((queue, options) => {
-      mockState.queues.set(queue, { options, messages: [] });
-      return Promise.resolve({ queue, messageCount: 0, consumerCount: 0 });
-    }),
+  const channel = new EventEmitter();
 
-    assertExchange: jest.fn().mockImplementation((exchange, type, options) => {
-      mockState.exchanges.set(exchange, { type, options });
-      return Promise.resolve({});
-    }),
+  // RabbitMQ channel methods
+  channel.assertQueue = jest.fn().mockImplementation((queue, options) => {
+    mockState.queues.set(queue, { options, messages: [] });
+    return Promise.resolve({ queue, messageCount: 0, consumerCount: 0 });
+  });
 
-    bindQueue: jest.fn().mockResolvedValue({}),
-    unbindQueue: jest.fn().mockResolvedValue({}),
+  channel.assertExchange = jest.fn().mockImplementation((exchange, type, options) => {
+    mockState.exchanges.set(exchange, { type, options });
+    return Promise.resolve({});
+  });
 
-    publish: jest.fn().mockImplementation((exchange, routingKey, content, options) => {
-      mockState.lastPublished = { exchange, routingKey, content, options };
-      mockState.messages.push({ exchange, routingKey, content, options });
-      return true;
-    }),
+  channel.bindQueue = jest.fn().mockResolvedValue({});
+  channel.unbindQueue = jest.fn().mockResolvedValue({});
 
-    sendToQueue: jest.fn().mockImplementation((queue, content, options) => {
-      mockState.lastPublished = { queue, content, options };
-      mockState.messages.push({ queue, content, options });
-      return true;
-    }),
+  channel.publish = jest.fn().mockImplementation((exchange, routingKey, content, options) => {
+    mockState.lastPublished = { exchange, routingKey, content, options };
+    mockState.messages.push({ exchange, routingKey, content, options });
+    return true;
+  });
 
-    consume: jest.fn().mockImplementation((queue, callback, options) => {
-      const consumerTag = `ctag-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      mockState.consumers.set(consumerTag, { queue, callback, options });
-      return Promise.resolve({ consumerTag });
-    }),
+  channel.sendToQueue = jest.fn().mockImplementation((queue, content, options) => {
+    mockState.lastPublished = { queue, content, options };
+    mockState.messages.push({ queue, content, options });
+    return true;
+  });
 
-    cancel: jest.fn().mockResolvedValue({}),
+  channel.consume = jest.fn().mockImplementation((queue, callback, options) => {
+    const consumerTag = `ctag-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    mockState.consumers.set(consumerTag, { queue, callback, options });
+    return Promise.resolve({ consumerTag });
+  });
 
-    ack: jest.fn(),
-    nack: jest.fn(),
-    reject: jest.fn(),
+  channel.cancel = jest.fn().mockResolvedValue({});
 
-    prefetch: jest.fn(),
+  channel.ack = jest.fn();
+  channel.nack = jest.fn();
+  channel.reject = jest.fn();
 
-    close: jest.fn().mockResolvedValue({}),
+  channel.prefetch = jest.fn();
 
-    on: jest.fn(),
-    once: jest.fn(),
-    removeListener: jest.fn(),
+  channel.close = jest.fn().mockImplementation(async () => {
+    channel.emit('close');
+    return {};
+  });
 
-    // For confirmChannel
-    waitForConfirms: jest.fn().mockResolvedValue({}),
+  // For confirmChannel
+  channel.waitForConfirms = jest.fn().mockResolvedValue({});
 
-    // Additional methods
-    checkQueue: jest.fn().mockImplementation((queue) => {
-      return Promise.resolve({ queue, messageCount: 0, consumerCount: 0 });
-    }),
+  // Additional methods
+  channel.checkQueue = jest.fn().mockImplementation((queue) => {
+    return Promise.resolve({ queue, messageCount: 0, consumerCount: 0 });
+  });
 
-    deleteQueue: jest.fn().mockImplementation((queue) => {
-      mockState.queues.delete(queue);
-      return Promise.resolve({ messageCount: 0 });
-    }),
+  channel.deleteQueue = jest.fn().mockImplementation((queue) => {
+    mockState.queues.delete(queue);
+    return Promise.resolve({ messageCount: 0 });
+  });
 
-    purgeQueue: jest.fn().mockResolvedValue({ messageCount: 0 }),
+  channel.purgeQueue = jest.fn().mockResolvedValue({ messageCount: 0 });
 
-    get: jest.fn().mockResolvedValue(false) // No message available
-  };
+  channel.get = jest.fn().mockResolvedValue(false); // No message available
 
   mockState.channels.push(channel);
   return channel;
 }
 
-// Mock connection implementation
+// Mock connection implementation (extends EventEmitter)
 function createMockConnection() {
-  const connection = {
-    createChannel: jest.fn().mockImplementation(() => {
-      return Promise.resolve(createMockChannel());
-    }),
+  const connection = new EventEmitter();
 
-    createConfirmChannel: jest.fn().mockImplementation(() => {
-      return Promise.resolve(createMockChannel());
-    }),
+  // RabbitMQ connection methods
+  connection.createChannel = jest.fn().mockImplementation(() => {
+    return Promise.resolve(createMockChannel());
+  });
 
-    close: jest.fn().mockResolvedValue({}),
+  connection.createConfirmChannel = jest.fn().mockImplementation(() => {
+    return Promise.resolve(createMockChannel());
+  });
 
-    on: jest.fn(),
-    once: jest.fn(),
-    removeListener: jest.fn(),
+  connection.close = jest.fn().mockImplementation(async () => {
+    connection.emit('close');
+    return {};
+  });
 
-    // Connection properties
-    connection: {
-      serverProperties: {
-        product: 'RabbitMQ',
-        version: '3.12.0-mock'
-      }
+  // Connection properties
+  connection.connection = {
+    serverProperties: {
+      product: 'RabbitMQ',
+      version: '3.12.0-mock'
     }
   };
 

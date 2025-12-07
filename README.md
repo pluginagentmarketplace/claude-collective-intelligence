@@ -97,19 +97,19 @@ This opens 3 terminals with Claude Code instances that communicate via RabbitMQ!
 **Terminal 1 - Team Leader:**
 ```bash
 cd ~/plugin-ai-agent-rabbitmq
-node scripts/orchestrator.js team-leader
+node src/core/orchestrator.js team-leader
 ```
 
 **Terminal 2 - Worker:**
 ```bash
 cd ~/plugin-ai-agent-rabbitmq
-node scripts/orchestrator.js worker
+node src/core/orchestrator.js worker
 ```
 
 **Terminal 3 - Worker:**
 ```bash
 cd ~/plugin-ai-agent-rabbitmq
-node scripts/orchestrator.js worker
+node src/core/orchestrator.js worker
 ```
 
 ### 3. Assign Your First Task
@@ -142,7 +142,7 @@ See [examples/5-terminal-scenario.md](examples/5-terminal-scenario.md) for the c
 **Role:** Orchestrates work, assigns tasks, aggregates results
 
 ```bash
-node scripts/orchestrator.js team-leader
+node src/core/orchestrator.js team-leader
 ```
 
 **Capabilities:**
@@ -156,7 +156,7 @@ node scripts/orchestrator.js team-leader
 **Role:** Executes tasks from queue
 
 ```bash
-node scripts/orchestrator.js worker
+node src/core/orchestrator.js worker
 ```
 
 **Capabilities:**
@@ -169,7 +169,7 @@ node scripts/orchestrator.js worker
 **Role:** Brainstorming and collaborative problem-solving
 
 ```bash
-node scripts/orchestrator.js collaborator
+node src/core/orchestrator.js collaborator
 ```
 
 **Capabilities:**
@@ -182,7 +182,7 @@ node scripts/orchestrator.js collaborator
 **Role:** Manage complex workflows with dependencies
 
 ```bash
-node scripts/orchestrator.js coordinator
+node src/core/orchestrator.js coordinator
 ```
 
 **Capabilities:**
@@ -195,7 +195,7 @@ node scripts/orchestrator.js coordinator
 **Role:** Real-time observability
 
 ```bash
-node scripts/orchestrator.js monitor
+node src/core/orchestrator.js monitor
 ```
 
 **Capabilities:**
@@ -269,7 +269,7 @@ The plugin includes 5 specialized skills:
 Manage connections, queues, exchanges, and messaging.
 
 ```javascript
-import { RabbitMQClient } from './scripts/rabbitmq-client.js';
+import { RabbitMQClient } from './src/core/rabbitmq-client.js';
 ```
 
 ### 2. Task Distribution
@@ -345,7 +345,7 @@ All Agents → agent.status exchange (topic) → Subscribers
 Start a monitor agent to see everything in real-time:
 
 ```bash
-node scripts/orchestrator.js monitor
+node src/core/orchestrator.js monitor
 ```
 
 **Dashboard shows:**
@@ -428,13 +428,14 @@ HEALTH_CHECK_INTERVAL=10000
 ### Custom Agent Names
 
 ```bash
-AGENT_NAME="Backend Specialist" node scripts/orchestrator.js worker
-AGENT_NAME="Frontend Expert" node scripts/orchestrator.js collaborator
+AGENT_NAME="Backend Specialist" node src/core/orchestrator.js worker
+AGENT_NAME="Frontend Expert" node src/core/orchestrator.js collaborator
 ```
 
 ## 📖 Documentation
 
 - **[MASTER-GUIDE.md](docs/MASTER-GUIDE.md)** - Complete system documentation
+- **[SERVICE-ACCESS.md](docs/SERVICE_ACCESS.md)** - Service URLs, credentials, and access guide ✨ **NEW**
 - [Quick Start](docs/guides/QUICK-START.md) - 5-minute setup guide
 - [Troubleshooting](docs/guides/TROUBLESHOOTING.md) - Problem solving
 - [MCP Server Guide](docs/architecture/MCP-SERVER-GUIDE.md) - MCP tools reference
@@ -505,7 +506,7 @@ while true; do
 done &
 
 # Start orchestrator
-node scripts/orchestrator.js worker
+node src/core/orchestrator.js worker
 ```
 
 ## 🔍 Troubleshooting
@@ -531,14 +532,14 @@ telnet localhost 5672
 /status queues
 
 # Start more workers if needed
-node scripts/orchestrator.js worker
+node src/core/orchestrator.js worker
 ```
 
 ### High queue depth
 ```bash
 # Solution: Start more workers
 # Terminal 4,5,6...
-node scripts/orchestrator.js worker
+node src/core/orchestrator.js worker
 ```
 
 ## 🤝 Contributing
@@ -604,9 +605,9 @@ npm install
 docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
 
 # 4. Run your first orchestration!
-node scripts/orchestrator.js team-leader &
-node scripts/orchestrator.js worker &
-node scripts/orchestrator.js worker &
+node src/core/orchestrator.js team-leader &
+node src/core/orchestrator.js worker &
+node src/core/orchestrator.js worker &
 
 # 5. Watch the magic happen! 🚀
 ```

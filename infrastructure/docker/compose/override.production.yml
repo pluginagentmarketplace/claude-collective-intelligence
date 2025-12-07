@@ -1,0 +1,299 @@
+
+# Production Override for AI Agent RabbitMQ Orchestrator
+# Generated: 2025-12-07 (Week 2 Phase 4 - Infrastructure Organization)
+# Purpose: Production-specific optimizations for performance, security, and reliability
+# Usage: docker-compose -f docker-compose.yml -f override.production.yml up
+
+services:
+  # =============================================
+  # PostgreSQL - Production Optimizations
+  # =============================================
+  postgres:
+    command:
+      - "postgres"
+      - "-c max_connections=500"
+      - "-c shared_buffers=2GB"
+      - "-c effective_cache_size=6GB"
+      - "-c work_mem=32MB"
+      - "-c maintenance_work_mem=512MB"
+      - "-c min_wal_size=1GB"
+      - "-c max_wal_size=4GB"
+      - "-c checkpoint_completion_target=0.9"
+      - "-c wal_buffers=16MB"
+      - "-c default_statistics_target=100"
+      - "-c random_page_cost=1.1"
+      - "-c effective_io_concurrency=200"
+      - "-c max_worker_processes=8"
+      - "-c max_parallel_workers_per_gather=4"
+      - "-c max_parallel_workers=8"
+      - "-c max_parallel_maintenance_workers=4"
+    environment:
+      # Use strong credentials from environment
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-agent_orchestrator}
+      # Security
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    # Remove exposed ports (internal only)
+    ports: []
+    # Production logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        compress: "true"
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 4G
+    # Health checks
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-agent_orchestrator}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # =============================================
+  # RabbitMQ - Production Performance & Clustering
+  # =============================================
+  rabbitmq:
+    environment:
+      # Production cluster configuration
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?RABBITMQ_ERLANG_COOKIE must be set}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?RABBITMQ_USER must be set}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD must be set}
+      # Performance tuning
+      RABBITMQ_VM_MEMORY_HIGH_WATERMARK: 0.6
+      RABBITMQ_DISK_FREE_LIMIT: 2GB
+      RABBITMQ_CHANNEL_MAX: 2048
+      RABBITMQ_HEARTBEAT: 60
+      # Management plugin
+      RABBITMQ_MANAGEMENT_PATH_PREFIX: "/rabbitmq"
+    # Remove exposed ports (use internal networking)
+    ports: []
+    # File descriptor limits
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    # Production logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        compress: "true"
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+
+  # =============================================
+  # Redis - Production Persistence & Performance
+  # =============================================
+  redis:
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 4gb
+      --maxmemory-policy allkeys-lru
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --stop-writes-on-bgsave-error no
+      --rdbcompression yes
+      --rdbchecksum yes
+      --tcp-backlog 511
+      --timeout 300
+      --tcp-keepalive 300
+      --maxclients 10000
+    # Remove exposed ports
+    ports: []
+    # Production logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        compress: "true"
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 6G
+        reservations:
+          cpus: '1'
+          memory: 4G
+    # Health checks
+    healthcheck:
+      test: ["CMD", "redis-cli", "--pass", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # =============================================
+  # pgAdmin - Production Security
+  # =============================================
+  pgadmin:
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:?PGADMIN_EMAIL must be set}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?PGADMIN_PASSWORD must be set}
+      # Production mode
+      PGADMIN_CONFIG_SERVER_MODE: 'True'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'True'
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: 'True'
+    # Remove or secure port exposure (use reverse proxy in production)
+    ports: []
+    # Production logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "25m"
+        max-file: "3"
+
+  # =============================================
+  # Redis Insight - Production Security
+  # =============================================
+  redis-insight:
+    # Remove exposed ports
+    ports: []
+    # Production logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "25m"
+        max-file: "3"
+
+  # =============================================
+  # Redis Commander - Production Security
+  # =============================================
+  redis-commander:
+    environment:
+      HTTP_USER: ${REDIS_COMMANDER_USER:?REDIS_COMMANDER_USER must be set}
+      HTTP_PASSWORD: ${REDIS_COMMANDER_PASSWORD:?REDIS_COMMANDER_PASSWORD must be set}
+      REDIS_HOSTS: local:redis:6379:0:${REDIS_PASSWORD}
+    # Remove exposed ports
+    ports: []
+    # Production logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "25m"
+        max-file: "3"
+
+  # =============================================
+  # Prometheus - Production Storage & Retention
+  # =============================================
+  prometheus:
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=90d'
+      - '--storage.tsdb.retention.size=200GB'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    # Production logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 8G
+        reservations:
+          cpus: '1'
+          memory: 4G
+
+  # =============================================
+  # Grafana - Production Security & Performance
+  # =============================================
+  grafana:
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:?GRAFANA_USER must be set}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?GRAFANA_PASSWORD must be set}
+      # Security settings
+      GF_SECURITY_SECRET_KEY: ${GRAFANA_SECRET_KEY:?GRAFANA_SECRET_KEY must be set}
+      GF_SECURITY_DISABLE_GRAVATAR: 'true'
+      GF_SECURITY_COOKIE_SECURE: 'true'
+      GF_SECURITY_COOKIE_SAMESITE: 'strict'
+      GF_SECURITY_STRICT_TRANSPORT_SECURITY: 'true'
+      # SMTP for production alerts
+      GF_SMTP_ENABLED: ${SMTP_ENABLED:-false}
+      GF_SMTP_HOST: ${SMTP_HOST}
+      GF_SMTP_USER: ${SMTP_USER}
+      GF_SMTP_PASSWORD: ${SMTP_PASSWORD}
+      GF_SMTP_FROM_ADDRESS: ${SMTP_FROM_ADDRESS}
+    # Production logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "25m"
+        max-file: "3"
+
+# =============================================
+# Production Notes
+# =============================================
+#
+# REQUIRED ENVIRONMENT VARIABLES:
+# - POSTGRES_PASSWORD (strong password, 20+ chars)
+# - RABBITMQ_ERLANG_COOKIE (32-char random string)
+# - RABBITMQ_USER (not 'admin' or 'guest')
+# - RABBITMQ_PASSWORD (strong password, 20+ chars)
+# - REDIS_PASSWORD (strong password, 20+ chars)
+# - PGADMIN_EMAIL (admin email)
+# - PGADMIN_PASSWORD (strong password, 20+ chars)
+# - REDIS_COMMANDER_USER (username)
+# - REDIS_COMMANDER_PASSWORD (strong password)
+# - GRAFANA_USER (admin username)
+# - GRAFANA_PASSWORD (strong password, 20+ chars)
+# - GRAFANA_SECRET_KEY (32-char random string)
+#
+# OPTIONAL:
+# - SMTP_ENABLED, SMTP_HOST, SMTP_USER, SMTP_PASSWORD, SMTP_FROM_ADDRESS
+#
+# DEPLOYMENT CHECKLIST:
+# 1. Set all required environment variables
+# 2. Use reverse proxy (nginx/traefik) for external access
+# 3. Enable TLS/SSL certificates
+# 4. Configure firewall rules
+# 5. Set up automated backups
+# 6. Enable monitoring and alerting
+# 7. Configure log aggregation
+# 8. Test disaster recovery procedures
+#
+# PERFORMANCE TUNING:
+# - Adjust resource limits based on actual load
+# - Monitor memory usage and adjust shared_buffers/maxmemory
+# - Tune worker processes based on CPU cores
+# - Configure connection pooling for applications
+#
+# SECURITY HARDENING:
+# - Use strong, randomly generated passwords
+# - Rotate credentials regularly
+# - Enable audit logging
+# - Implement network segmentation
+# - Use secrets management (Vault, AWS Secrets Manager)
+# - Regular security updates and patching
+#
+# =============================================

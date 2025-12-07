@@ -57,7 +57,7 @@ describe('Database Integration Layer', () => {
 
       mockQuery.mockResolvedValueOnce({ rows: [mockAgent] });
 
-      const { AgentRepository } = await import('../../../scripts/database/repositories/agent-repository.js');
+      const { AgentRepository } = await import('../../../src/database/repositories/agent-repository.js');
       const repository = new AgentRepository(mockDbClient);
 
       const result = await repository.create({
@@ -93,7 +93,7 @@ describe('Database Integration Layer', () => {
 
       mockQuery.mockResolvedValueOnce({ rows: [mockAgent] });
 
-      const { AgentRepository } = await import('../../../scripts/database/repositories/agent-repository.js');
+      const { AgentRepository } = await import('../../../src/database/repositories/agent-repository.js');
       const repository = new AgentRepository(mockDbClient);
 
       const result = await repository.findById('agent-1');
@@ -125,7 +125,7 @@ describe('Database Integration Layer', () => {
 
       mockQuery.mockResolvedValueOnce({ rows: [mockAgent] });
 
-      const { AgentRepository } = await import('../../../scripts/database/repositories/agent-repository.js');
+      const { AgentRepository } = await import('../../../src/database/repositories/agent-repository.js');
       const repository = new AgentRepository(mockDbClient);
 
       const result = await repository.updateHeartbeat('agent-1');
@@ -159,7 +159,7 @@ describe('Database Integration Layer', () => {
 
       mockQuery.mockResolvedValueOnce({ rows: [mockTask] });
 
-      const { TaskRepository } = await import('../../../scripts/database/repositories/task-repository.js');
+      const { TaskRepository } = await import('../../../src/database/repositories/task-repository.js');
       const repository = new TaskRepository(mockDbClient);
 
       const result = await repository.create({
@@ -205,7 +205,7 @@ describe('Database Integration Layer', () => {
         return await callback(mockClient);
       });
 
-      const { TaskRepository } = await import('../../../scripts/database/repositories/task-repository.js');
+      const { TaskRepository } = await import('../../../src/database/repositories/task-repository.js');
       const repository = new TaskRepository(mockDbClient);
 
       const result = await repository.dequeue('agent-1');
@@ -236,7 +236,7 @@ describe('Database Integration Layer', () => {
 
       mockQuery.mockResolvedValueOnce({ rows: [mockProposal] });
 
-      const { VotingRepository } = await import('../../../scripts/database/repositories/voting-repository.js');
+      const { VotingRepository } = await import('../../../src/database/repositories/voting-repository.js');
       const repository = new VotingRepository(mockDbClient);
 
       const result = await repository.createProposal({
@@ -265,7 +265,7 @@ describe('Database Integration Layer', () => {
 
       mockQuery.mockResolvedValueOnce({ rows: [mockVote] });
 
-      const { VotingRepository } = await import('../../../scripts/database/repositories/voting-repository.js');
+      const { VotingRepository } = await import('../../../src/database/repositories/voting-repository.js');
       const repository = new VotingRepository(mockDbClient);
 
       const result = await repository.castVote({
@@ -306,7 +306,7 @@ describe('Database Integration Layer', () => {
         return await callback(mockClient);
       });
 
-      const { GamificationRepository } = await import('../../../scripts/database/repositories/gamification-repository.js');
+      const { GamificationRepository } = await import('../../../src/database/repositories/gamification-repository.js');
       const repository = new GamificationRepository(mockDbClient);
 
       const result = await repository.addPoints('agent-1', 50, 'Task completion');
@@ -326,7 +326,7 @@ describe('Database Integration Layer', () => {
 
       mockQuery.mockResolvedValueOnce({ rows: [mockAchievement] });
 
-      const { GamificationRepository } = await import('../../../scripts/database/repositories/gamification-repository.js');
+      const { GamificationRepository } = await import('../../../src/database/repositories/gamification-repository.js');
       const repository = new GamificationRepository(mockDbClient);
 
       const result = await repository.awardAchievement('agent-1', 'first_task', { taskId: 'task-1' });
@@ -357,7 +357,7 @@ describe('Database Integration Layer', () => {
 
       mockQuery.mockResolvedValueOnce({ rows: [mockMatch] });
 
-      const { BattleRepository } = await import('../../../scripts/database/repositories/battle-repository.js');
+      const { BattleRepository } = await import('../../../src/database/repositories/battle-repository.js');
       const repository = new BattleRepository(mockDbClient);
 
       const result = await repository.createMatch({
@@ -396,7 +396,7 @@ describe('Database Integration Layer', () => {
 
       mockQuery.mockResolvedValueOnce({ rows: mockRows });
 
-      const { LeaderboardRepository } = await import('../../../scripts/database/repositories/leaderboard-repository.js');
+      const { LeaderboardRepository } = await import('../../../src/database/repositories/leaderboard-repository.js');
       const repository = new LeaderboardRepository(mockDbClient);
 
       const result = await repository.getCurrentLeaderboard({ metric: 'points', limit: 10 });
@@ -425,7 +425,7 @@ describe('Database Integration Layer', () => {
 
       mockQuery.mockResolvedValueOnce({ rows: [mockPairing] });
 
-      const { MentorshipRepository } = await import('../../../scripts/database/repositories/mentorship-repository.js');
+      const { MentorshipRepository } = await import('../../../src/database/repositories/mentorship-repository.js');
       const repository = new MentorshipRepository(mockDbClient);
 
       const result = await repository.createPairing({
@@ -458,7 +458,7 @@ describe('Database Integration Layer', () => {
 
       mockQuery.mockResolvedValueOnce({ rows: [mockAllocation] });
 
-      const { RewardsRepository } = await import('../../../scripts/database/repositories/rewards-repository.js');
+      const { RewardsRepository } = await import('../../../src/database/repositories/rewards-repository.js');
       const repository = new RewardsRepository(mockDbClient);
 
       const result = await repository.createAllocation({
@@ -495,7 +495,7 @@ describe('Database Integration Layer', () => {
 
       mockQuery.mockResolvedValueOnce({ rows: [mockViolation] });
 
-      const { PenaltiesRepository } = await import('../../../scripts/database/repositories/penalties-repository.js');
+      const { PenaltiesRepository } = await import('../../../src/database/repositories/penalties-repository.js');
       const repository = new PenaltiesRepository(mockDbClient);
 
       const result = await repository.createViolation({
@@ -532,7 +532,7 @@ describe('Database Integration Layer', () => {
 
       mockQuery.mockResolvedValueOnce({ rows: [mockSession] });
 
-      const { BrainstormRepository } = await import('../../../scripts/database/repositories/brainstorm-repository.js');
+      const { BrainstormRepository } = await import('../../../src/database/repositories/brainstorm-repository.js');
       const repository = new BrainstormRepository(mockDbClient);
 
       const result = await repository.createSession({
@@ -581,7 +581,7 @@ describe('Database Integration Layer', () => {
         return await callback(mockClient);
       });
 
-      const { ReputationRepository } = await import('../../../scripts/database/repositories/reputation-repository.js');
+      const { ReputationRepository } = await import('../../../src/database/repositories/reputation-repository.js');
       const repository = new ReputationRepository(mockDbClient);
 
       const result = await repository.addRating({
