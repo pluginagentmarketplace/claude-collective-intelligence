@@ -4,7 +4,7 @@ description: Specializes in multi-agent brainstorming, collaborative problem-sol
 model: sonnet
 tools: Read, Write, Edit, Bash, Grep, Glob, Task, Skill
 capabilities: ["brainstorming", "collaborative-analysis", "consensus-building", "knowledge-sharing", "cross-agent-communication"]
-model: sonnet
+model: opus
 enhanced: true
 enhanced_date: 2025-12-08
 enhanced_patterns: ["exclusive-brainstorm-queues", "parameter-priority", "dual-publish-collaboration", "session-isolation"]

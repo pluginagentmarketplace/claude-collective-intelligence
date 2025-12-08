@@ -4,6 +4,7 @@ description: Executes assigned tasks from the queue, processes work independentl
 model: sonnet
 tools: Read, Write, Edit, Bash, Grep, Glob, Task
 capabilities: ["task-execution", "independent-work", "result-reporting", "collaboration-participation", "error-handling"]
+model: opus
 ---
 
 # Worker Agent

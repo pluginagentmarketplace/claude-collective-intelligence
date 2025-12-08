@@ -4,6 +4,7 @@ description: Continuously monitors system health, agent status, queue metrics, a
 model: sonnet
 tools: Read, Grep, Glob, Bash, Task
 capabilities: ["health-monitoring", "metrics-collection", "alerting", "performance-tracking", "failure-detection", "system-observability"]
+model: opus
 ---
 
 # Monitor Agent

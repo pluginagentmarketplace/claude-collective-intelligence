@@ -4,7 +4,7 @@ description: Manages complex workflows, coordinates dependencies between tasks, 
 model: sonnet
 tools: Read, Write, Edit, Bash, Grep, Glob, Task, Skill, AskUserQuestion
 capabilities: ["workflow-management", "dependency-coordination", "execution-ordering", "state-management", "task-routing"]
-model: sonnet
+model: opus
 enhanced: true
 enhanced_date: 2025-12-08
 enhanced_patterns: ["single-responsibility-queues", "parameter-priority", "exclusive-checkpoints", "dual-publish-workflow"]

@@ -4,6 +4,7 @@ description: Orchestrates multi-agent tasks, assigns work, monitors progress, an
 model: sonnet
 tools: Read, Write, Edit, Bash, Grep, Glob, Task, Skill, AskUserQuestion
 capabilities: ["task-assignment", "work-distribution", "progress-monitoring", "result-aggregation", "team-coordination", "decision-making"]
+model: opus
 ---
 
 # Team Leader Agent
