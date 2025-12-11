@@ -1,5 +1,8 @@
 ---
+name: coordinator-agent
 description: Manages complex workflows, coordinates dependencies between tasks, and ensures proper execution order across distributed agents
+model: sonnet
+tools: Read, Write, Edit, Bash, Grep, Glob, Task, Skill, AskUserQuestion
 capabilities: ["workflow-management", "dependency-coordination", "execution-ordering", "state-management", "task-routing"]
 ---
 

@@ -1,0 +1,8 @@
+# System Inspector Pipeline Dependencies
+# ======================================
+
+# YAML config support (optional - JSON fallback available)
+PyYAML>=6.0
+
+# No other external dependencies required!
+# All other modules are Python standard library.

@@ -1,3 +1,9 @@
+---
+description: Quick command to join the orchestration team with auto-configuration
+allowed-tools: Read, Write, Bash, Task
+argument-hint: [leader|worker|collaborator|coordinator|monitor]
+---
+
 # Join Team - Quick Agent Onboarding
 
 Quick command to join the orchestration team. Simplified alternative to `/orchestrate`.

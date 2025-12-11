@@ -1,3 +1,9 @@
+---
+description: Initiate a multi-agent brainstorming session for collaborative problem solving
+allowed-tools: Read, Bash, Task, Skill
+argument-hint: topic="<topic>" question="<question>" [agents=<list>]
+---
+
 # Brainstorm - Collaborative Multi-Agent Problem Solving
 
 Initiate a brainstorming session where multiple agents collaborate to solve complex problems or make decisions.

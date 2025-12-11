@@ -1,3 +1,9 @@
+---
+description: Assign a task to the worker pool for distributed execution
+allowed-tools: Read, Write, Bash, Task
+argument-hint: title="<task>" [priority=high|normal|low] [collaboration=true]
+---
+
 # Assign Task - Distribute Work to Agents
 
 Assign a task to the worker pool. Available workers will pick up and execute the task.

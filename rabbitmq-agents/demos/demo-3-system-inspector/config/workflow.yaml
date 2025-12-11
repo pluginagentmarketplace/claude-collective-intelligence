@@ -1,0 +1,214 @@
+# =============================================================================
+# SYSTEM INSPECTOR WORKFLOW CONFIGURATION v6.0.0
+# =============================================================================
+# ULTRATHINK EDITION - RabbitMQ Cleanup + Doc-Based Role Assignment
+#
+# Yeni Claude session: python3 orchestrator.py
+# Kapatma:            python3 orchestrator.py --task task_final --load-context
+# =============================================================================
+
+name: "system-inspector-pipeline"
+version: "6.0.0"
+description: |
+  Mac dual-monitor multi-agent orchestration pipeline.
+  - Display detection
+  - Terminal setup with Window ID tracking
+  - Claude Code launcher
+  - Doc-based RabbitMQ role assignment
+  - Safe shutdown with RabbitMQ cleanup (RESOURCE_LOCKED prevention!)
+
+# =============================================================================
+# GLOBAL SETTINGS
+# =============================================================================
+settings:
+  verbose: true
+  stop_on_error: false
+  save_report: true
+  report_dir: "./reports"
+
+# =============================================================================
+# RABBITMQ CONFIGURATION (KRITIK!)
+# =============================================================================
+rabbitmq:
+  # Docker container: agent_rabbitmq
+  host: "localhost"
+  port: 5672
+  management_port: 15672
+  # KRITIK: path_prefix "/rabbitmq" - Management API URL: /rabbitmq/api/
+  management_path_prefix: "/rabbitmq"
+  # DOGRU credentials (docker-compose.yml'dan)
+  username: "admin"
+  password: "rabbitmq123"
+  vhost: "/"
+
+# =============================================================================
+# TASK PIPELINE - Sıralı çalışır, her task öncekinin çıktısını alır
+# =============================================================================
+tasks:
+  # -------------------------------------------------------------------------
+  # TASK 1: Display Inspector (v1.0.0)
+  # -------------------------------------------------------------------------
+  - name: "display_inspector"
+    enabled: true
+    description: "Mac ekran yapılandırmasını tespit et"
+    module: "tasks.display_inspector"
+    class: "DisplayInspectorTask"
+    config: {}
+    # Output: displays, external_display, main_display
+
+  # -------------------------------------------------------------------------
+  # TASK 2: Terminal Setup (v3.0.0 - Window ID Tracking)
+  # -------------------------------------------------------------------------
+  - name: "terminal_setup"
+    enabled: true
+    description: "Harici ekrana göre terminal pencereleri aç + Window ID yakala"
+    module: "tasks.terminal_setup"
+    class: "TerminalSetupTask"
+    depends_on: "display_inspector"
+    config:
+      terminal_count: 3
+      use_dark_theme: true
+      use_external_display: true
+      terminal_titles:
+        - "LEADER"
+        - "WORKER-1"
+        - "WORKER-2"
+      gap: 0
+    # Output: terminals (with window_ids), window_ids
+
+  # -------------------------------------------------------------------------
+  # TASK 3: Screenshot Validator (v1.0.0)
+  # -------------------------------------------------------------------------
+  - name: "screenshot_validator"
+    enabled: true
+    description: "İkinci ekran screenshot'ı al ve cross-check yap"
+    module: "tasks.screenshot_validator"
+    class: "ScreenshotValidatorTask"
+    depends_on: "terminal_setup"
+    config:
+      output_dir: "screenshots"
+      max_size_kb: 500
+      jpeg_quality: 100
+      resize_factor: 0.5
+      wait_before_capture: 1.5
+    # Output: screenshot
+
+  # -------------------------------------------------------------------------
+  # TASK 4: Claude Launcher (v2.0.0)
+  # -------------------------------------------------------------------------
+  - name: "claude_launcher"
+    enabled: true
+    description: "3 terminalde Claude Code (dangerous mode) açar"
+    module: "tasks.claude_launcher"
+    class: "ClaudeLauncherTask"
+    depends_on: "screenshot_validator"
+    config:
+      claude_command: "claude --dangerously-skip-permissions"
+      wait_between_launches: 7
+      wait_after_all: 5
+      screenshot_after: true
+      screenshot_dir: "screenshots"
+      jpeg_quality: 100
+      resize_factor: 0.5
+    # Output: launched_in
+
+  # -------------------------------------------------------------------------
+  # TASK 5: Role Prompter (v3.0.0 - Doc-Based Rol Atama)
+  # -------------------------------------------------------------------------
+  # Her terminal için ROL DOKUMANI gönderir:
+  #   LEADER   → docs/roles/LEADER.md oku ve uygula
+  #   WORKER-1 → docs/roles/WORKER-1.md oku ve uygula
+  #   WORKER-2 → docs/roles/WORKER-2.md oku ve uygula
+  #
+  # KRITIK: Agent'lar dokümanı okuyup bash komutu çalıştırmalı:
+  #   node src/core/orchestrator.js [role]
+  #
+  # YANLIS: /join-team, /orchestrate (slash komutları çalışmıyor!)
+  # -------------------------------------------------------------------------
+  - name: "role_prompter"
+    enabled: true
+    description: "Claude'lara RabbitMQ rol ataması yapar (doc-based)"
+    module: "tasks.role_prompter"
+    class: "RolePrompterTask"
+    depends_on: "claude_launcher"
+    config:
+      wait_before_typing: 5
+      wait_after_enter: 10
+      wait_between_terminals: 7
+      screenshot_after_each: true
+      screenshot_dir: "screenshots"
+      jpeg_quality: 100
+      resize_factor: 0.5
+    # Output: role_assignments
+
+  # -------------------------------------------------------------------------
+  # TASK FINAL: Safe Shutdown (v2.0.0 - RabbitMQ Cleanup!)
+  # -------------------------------------------------------------------------
+  # KRITIK: RESOURCE_LOCKED hatasini onlemek icin:
+  #   1. RabbitMQ exclusive queue'larini siler
+  #   2. RabbitMQ baglantilarini kapatir
+  #   3. /exit komutu gonderir (Claude Code kapatir)
+  #   4. Terminal penceresini kapatir
+  #
+  # RabbitMQ Management API: http://localhost:15672/rabbitmq/api/
+  #   - path_prefix "/rabbitmq" unutma!
+  #   - Credentials: admin/rabbitmq123
+  # -------------------------------------------------------------------------
+  - name: "task_final"
+    enabled: false  # Manuel: python3 orchestrator.py --task task_final --load-context
+    description: "Claude Code ve terminalleri guvenli kapatir (RabbitMQ cleanup dahil!)"
+    module: "tasks.task_final"
+    class: "TaskFinal"
+    depends_on: "role_prompter"
+    config:
+      # RabbitMQ Cleanup (v2.0.0 - KRITIK!)
+      cleanup_rabbitmq: true
+      # Exclusive queue'lar - shutdown'da silinecek
+      # - brainstorm.team-leader-main
+      # - brainstorm.results.team-leader-main
+      # - status.team-leader-main
+      # - brainstorm.worker-1, brainstorm.results.worker-1
+      # - brainstorm.worker-2, brainstorm.results.worker-2
+
+      # Terminal Shutdown
+      wait_before_exit: 2
+      wait_after_exit: 5
+      wait_before_close: 2
+      wait_between_terminals: 3
+      close_terminal_after: true
+
+# =============================================================================
+# LESSONS LEARNED (v6.0.0)
+# =============================================================================
+# 1. RabbitMQ Credentials: guest/guest YOK! admin/rabbitmq123 kullan
+# 2. Management API Path: /rabbitmq/api/ (path_prefix "/rabbitmq")
+# 3. Agent Baglanti: Slash komutlari (/join-team) CALISMAZ!
+#    Direkt bash: node src/core/orchestrator.js [role]
+# 4. RESOURCE_LOCKED: Shutdown'da exclusive queue'lar silinmeli
+# =============================================================================
+
+# =============================================================================
+# HOOKS (İlerisi için)
+# =============================================================================
+hooks:
+  pre_pipeline: null
+  post_pipeline: null
+  on_error: null
+
+# =============================================================================
+# METADATA
+# =============================================================================
+metadata:
+  author: "System Inspector Team"
+  created: "2025-12-11"
+  updated: "2025-12-11"
+  tags:
+    - "macos"
+    - "display"
+    - "terminal"
+    - "automation"
+    - "screenshot"
+    - "claude-code"
+    - "multi-agent"
+    - "rabbitmq"
+    - "ultrathink"

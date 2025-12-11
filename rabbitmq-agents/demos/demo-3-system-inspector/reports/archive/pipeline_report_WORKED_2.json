@@ -1,0 +1,527 @@
+{
+  "workflow": "system-inspector-pipeline",
+  "version": "5.1.0",
+  "started_at": "2025-12-11T09:33:43.086013",
+  "completed_at": "2025-12-11T09:35:03.146259",
+  "tasks": [
+    {
+      "task_name": "display_inspector",
+      "status": "success",
+      "data": {
+        "hostname": "192.168.1.54",
+        "macos_version": "15.5",
+        "total_displays": 2,
+        "displays": [
+          {
+            "display_id": 1,
+            "name": "Color LCD",
+            "resolution": "1280 x 800 @ 60.00Hz",
+            "width": 1280,
+            "height": 800,
+            "is_main": true,
+            "is_retina": false,
+            "connection_type": "Built-in",
+            "gpu": "Apple M1"
+          },
+          {
+            "display_id": 2,
+            "name": "LG FULL HD",
+            "resolution": "1920 x 1080 @ 60.00Hz",
+            "width": 1920,
+            "height": 1080,
+            "is_main": false,
+            "is_retina": false,
+            "connection_type": "External",
+            "gpu": "Apple M1"
+          }
+        ],
+        "main_display": {
+          "display_id": 1,
+          "name": "Color LCD",
+          "resolution": "1280 x 800 @ 60.00Hz",
+          "width": 1280,
+          "height": 800,
+          "is_main": true,
+          "is_retina": false,
+          "connection_type": "Built-in",
+          "gpu": "Apple M1"
+        },
+        "external_display": {
+          "display_id": 2,
+          "name": "LG FULL HD",
+          "resolution": "1920 x 1080 @ 60.00Hz",
+          "width": 1920,
+          "height": 1080,
+          "is_main": false,
+          "is_retina": false,
+          "connection_type": "External",
+          "gpu": "Apple M1"
+        },
+        "timestamp": "2025-12-11T09:33:43.455280"
+      },
+      "error": null,
+      "started_at": "2025-12-11T09:33:43.094664",
+      "completed_at": "2025-12-11T09:33:43.455327",
+      "duration_ms": 360.66
+    },
+    {
+      "task_name": "terminal_setup",
+      "status": "success",
+      "data": {
+        "terminals_opened": 3,
+        "terminal_width": 640,
+        "terminal_height": 1080,
+        "x_offset": 1280,
+        "target_display": "LG FULL HD",
+        "terminals": [
+          {
+            "index": 1,
+            "title": "LEADER",
+            "x": 1280,
+            "y": 0,
+            "width": 640,
+            "height": 1080,
+            "window_id": 25534
+          },
+          {
+            "index": 2,
+            "title": "WORKER-1",
+            "x": 1920,
+            "y": 0,
+            "width": 640,
+            "height": 1080,
+            "window_id": 25536
+          },
+          {
+            "index": 3,
+            "title": "WORKER-2",
+            "x": 2560,
+            "y": 0,
+            "width": 640,
+            "height": 1080,
+            "window_id": 25538
+          }
+        ],
+        "window_ids": [
+          25534,
+          25536,
+          25538
+        ]
+      },
+      "error": null,
+      "started_at": "2025-12-11T09:33:43.455432",
+      "completed_at": "2025-12-11T09:33:46.534137",
+      "duration_ms": 3078.7
+    },
+    {
+      "task_name": "screenshot_validator",
+      "status": "success",
+      "data": {
+        "screenshot_path": "/Users/umitkacar/Documents/github-pluginagentmarketplace/claude-collective-intelligence/rabbitmq-agents/demos/demo-3-system-inspector/screenshots/external_display_20251211_093346.jpg",
+        "screenshot_filename": "external_display_20251211_093346.jpg",
+        "file_size_kb": 57.6,
+        "analysis": {
+          "display_info": {
+            "name": "LG FULL HD",
+            "width": 1920,
+            "height": 1080,
+            "x_offset": 1280
+          },
+          "expected_layout": {
+            "terminal_count": 3,
+            "terminals": [
+              {
+                "title": "LEADER",
+                "x": 1280,
+                "y": 0,
+                "width": 640,
+                "height": 1080
+              },
+              {
+                "title": "WORKER-1",
+                "x": 1920,
+                "y": 0,
+                "width": 640,
+                "height": 1080
+              },
+              {
+                "title": "WORKER-2",
+                "x": 2560,
+                "y": 0,
+                "width": 640,
+                "height": 1080
+              }
+            ],
+            "arrangement": "horizontal_side_by_side"
+          },
+          "evidence": {
+            "file": "external_display_20251211_093346.jpg",
+            "timestamp": "2025-12-11T09:33:48.225738",
+            "verification_note": "Bu screenshot görevin doğru yapıldığının kanıtıdır"
+          }
+        },
+        "cross_check": {
+          "target_display": "LG FULL HD",
+          "expected_terminals": 3,
+          "terminal_positions": [
+            {
+              "index": 1,
+              "title": "LEADER",
+              "x": 1280,
+              "y": 0,
+              "width": 640,
+              "height": 1080,
+              "window_id": 25534
+            },
+            {
+              "index": 2,
+              "title": "WORKER-1",
+              "x": 1920,
+              "y": 0,
+              "width": 640,
+              "height": 1080,
+              "window_id": 25536
+            },
+            {
+              "index": 3,
+              "title": "WORKER-2",
+              "x": 2560,
+              "y": 0,
+              "width": 640,
+              "height": 1080,
+              "window_id": 25538
+            }
+          ],
+          "evidence_file": "external_display_20251211_093346.jpg",
+          "verification_status": "PENDING_CLAUDE_ANALYSIS"
+        }
+      },
+      "error": null,
+      "started_at": "2025-12-11T09:33:46.534375",
+      "completed_at": "2025-12-11T09:33:48.225790",
+      "duration_ms": 1691.41
+    },
+    {
+      "task_name": "claude_launcher",
+      "status": "success",
+      "data": {
+        "launched_count": 3,
+        "total_terminals": 3,
+        "launched_in": [
+          "LEADER",
+          "WORKER-1",
+          "WORKER-2"
+        ],
+        "claude_command": "claude --dangerously-skip-permissions",
+        "screenshot": "/Users/umitkacar/Documents/github-pluginagentmarketplace/claude-collective-intelligence/rabbitmq-agents/demos/demo-3-system-inspector/screenshots/claude_verification_20251211_093408.jpg",
+        "verification": {
+          "status": "SUCCESS",
+          "evidence": "claude_verification_20251211_093408.jpg",
+          "message": "3 Claude instances running in dangerous mode"
+        }
+      },
+      "error": null,
+      "started_at": "2025-12-11T09:33:48.225891",
+      "completed_at": "2025-12-11T09:34:08.834793",
+      "duration_ms": 20608.9
+    },
+    {
+      "task_name": "role_prompter",
+      "status": "success",
+      "data": {
+        "prompts_sent": 3,
+        "total_terminals": 3,
+        "results": [
+          {
+            "terminal": "LEADER",
+            "window_id": 25534,
+            "status": "success",
+            "prompt_sent": "Sana Takim Lideri gorevi verecegim, RabbitMQ baglantisi yapip gorevini deklare edeceksin, hazir misin?"
+          },
+          {
+            "terminal": "WORKER-1",
+            "window_id": 25536,
+            "status": "success",
+            "prompt_sent": "Sana Agent gorevi verecegim, RabbitMQ baglantisi yapip gorevini deklare edeceksin, hazir misin?"
+          },
+          {
+            "terminal": "WORKER-2",
+            "window_id": 25538,
+            "status": "success",
+            "prompt_sent": "Sana Worker gorevi verecegim, RabbitMQ baglantisi yapip gorevini deklare edeceksin, hazir misin?"
+          }
+        ],
+        "role_assignments": {
+          "LEADER": {
+            "window_id": 25534,
+            "role": "LEADER",
+            "prompt_sent": "Sana Takim Lideri gorevi verecegim, RabbitMQ baglantisi yapip gorevini deklare edeceksin, hazir misin?",
+            "status": "assigned"
+          },
+          "WORKER-1": {
+            "window_id": 25536,
+            "role": "WORKER-1",
+            "prompt_sent": "Sana Agent gorevi verecegim, RabbitMQ baglantisi yapip gorevini deklare edeceksin, hazir misin?",
+            "status": "assigned"
+          },
+          "WORKER-2": {
+            "window_id": 25538,
+            "role": "WORKER-2",
+            "prompt_sent": "Sana Worker gorevi verecegim, RabbitMQ baglantisi yapip gorevini deklare edeceksin, hazir misin?",
+            "status": "assigned"
+          }
+        },
+        "screenshots": [
+          "/Users/umitkacar/Documents/github-pluginagentmarketplace/claude-collective-intelligence/rabbitmq-agents/demos/demo-3-system-inspector/screenshots/response_leader_20251211_093425.jpg",
+          "/Users/umitkacar/Documents/github-pluginagentmarketplace/claude-collective-intelligence/rabbitmq-agents/demos/demo-3-system-inspector/screenshots/response_worker-1_20251211_093444.jpg",
+          "/Users/umitkacar/Documents/github-pluginagentmarketplace/claude-collective-intelligence/rabbitmq-agents/demos/demo-3-system-inspector/screenshots/response_worker-2_20251211_093502.jpg"
+        ],
+        "final_screenshot": "/Users/umitkacar/Documents/github-pluginagentmarketplace/claude-collective-intelligence/rabbitmq-agents/demos/demo-3-system-inspector/screenshots/role_prompter_final_20251211_093502.jpg",
+        "verification_checklist": [
+          "Her terminalde doğru rol mesajı var mı?",
+          "Her Claude \"hazırım\" dedi mi?",
+          "Window ID mapping doğru mu?"
+        ]
+      },
+      "error": null,
+      "started_at": "2025-12-11T09:34:08.834904",
+      "completed_at": "2025-12-11T09:35:03.146117",
+      "duration_ms": 54311.21
+    }
+  ],
+  "final_context": {
+    "hostname": "192.168.1.54",
+    "macos_version": "15.5",
+    "total_displays": 2,
+    "displays": [
+      {
+        "display_id": 1,
+        "name": "Color LCD",
+        "resolution": "1280 x 800 @ 60.00Hz",
+        "width": 1280,
+        "height": 800,
+        "is_main": true,
+        "is_retina": false,
+        "connection_type": "Built-in",
+        "gpu": "Apple M1"
+      },
+      {
+        "display_id": 2,
+        "name": "LG FULL HD",
+        "resolution": "1920 x 1080 @ 60.00Hz",
+        "width": 1920,
+        "height": 1080,
+        "is_main": false,
+        "is_retina": false,
+        "connection_type": "External",
+        "gpu": "Apple M1"
+      }
+    ],
+    "main_display": {
+      "display_id": 1,
+      "name": "Color LCD",
+      "resolution": "1280 x 800 @ 60.00Hz",
+      "width": 1280,
+      "height": 800,
+      "is_main": true,
+      "is_retina": false,
+      "connection_type": "Built-in",
+      "gpu": "Apple M1"
+    },
+    "external_display": {
+      "display_id": 2,
+      "name": "LG FULL HD",
+      "resolution": "1920 x 1080 @ 60.00Hz",
+      "width": 1920,
+      "height": 1080,
+      "is_main": false,
+      "is_retina": false,
+      "connection_type": "External",
+      "gpu": "Apple M1"
+    },
+    "timestamp": "2025-12-11T09:33:43.455280",
+    "terminals_opened": 3,
+    "terminal_width": 640,
+    "terminal_height": 1080,
+    "x_offset": 1280,
+    "target_display": "LG FULL HD",
+    "terminals": [
+      {
+        "index": 1,
+        "title": "LEADER",
+        "x": 1280,
+        "y": 0,
+        "width": 640,
+        "height": 1080,
+        "window_id": 25534
+      },
+      {
+        "index": 2,
+        "title": "WORKER-1",
+        "x": 1920,
+        "y": 0,
+        "width": 640,
+        "height": 1080,
+        "window_id": 25536
+      },
+      {
+        "index": 3,
+        "title": "WORKER-2",
+        "x": 2560,
+        "y": 0,
+        "width": 640,
+        "height": 1080,
+        "window_id": 25538
+      }
+    ],
+    "window_ids": [
+      25534,
+      25536,
+      25538
+    ],
+    "screenshot_path": "/Users/umitkacar/Documents/github-pluginagentmarketplace/claude-collective-intelligence/rabbitmq-agents/demos/demo-3-system-inspector/screenshots/external_display_20251211_093346.jpg",
+    "screenshot_filename": "external_display_20251211_093346.jpg",
+    "file_size_kb": 57.6,
+    "analysis": {
+      "display_info": {
+        "name": "LG FULL HD",
+        "width": 1920,
+        "height": 1080,
+        "x_offset": 1280
+      },
+      "expected_layout": {
+        "terminal_count": 3,
+        "terminals": [
+          {
+            "title": "LEADER",
+            "x": 1280,
+            "y": 0,
+            "width": 640,
+            "height": 1080
+          },
+          {
+            "title": "WORKER-1",
+            "x": 1920,
+            "y": 0,
+            "width": 640,
+            "height": 1080
+          },
+          {
+            "title": "WORKER-2",
+            "x": 2560,
+            "y": 0,
+            "width": 640,
+            "height": 1080
+          }
+        ],
+        "arrangement": "horizontal_side_by_side"
+      },
+      "evidence": {
+        "file": "external_display_20251211_093346.jpg",
+        "timestamp": "2025-12-11T09:33:48.225738",
+        "verification_note": "Bu screenshot görevin doğru yapıldığının kanıtıdır"
+      }
+    },
+    "cross_check": {
+      "target_display": "LG FULL HD",
+      "expected_terminals": 3,
+      "terminal_positions": [
+        {
+          "index": 1,
+          "title": "LEADER",
+          "x": 1280,
+          "y": 0,
+          "width": 640,
+          "height": 1080,
+          "window_id": 25534
+        },
+        {
+          "index": 2,
+          "title": "WORKER-1",
+          "x": 1920,
+          "y": 0,
+          "width": 640,
+          "height": 1080,
+          "window_id": 25536
+        },
+        {
+          "index": 3,
+          "title": "WORKER-2",
+          "x": 2560,
+          "y": 0,
+          "width": 640,
+          "height": 1080,
+          "window_id": 25538
+        }
+      ],
+      "evidence_file": "external_display_20251211_093346.jpg",
+      "verification_status": "PENDING_CLAUDE_ANALYSIS"
+    },
+    "launched_count": 3,
+    "total_terminals": 3,
+    "launched_in": [
+      "LEADER",
+      "WORKER-1",
+      "WORKER-2"
+    ],
+    "claude_command": "claude --dangerously-skip-permissions",
+    "screenshot": "/Users/umitkacar/Documents/github-pluginagentmarketplace/claude-collective-intelligence/rabbitmq-agents/demos/demo-3-system-inspector/screenshots/claude_verification_20251211_093408.jpg",
+    "verification": {
+      "status": "SUCCESS",
+      "evidence": "claude_verification_20251211_093408.jpg",
+      "message": "3 Claude instances running in dangerous mode"
+    },
+    "prompts_sent": 3,
+    "results": [
+      {
+        "terminal": "LEADER",
+        "window_id": 25534,
+        "status": "success",
+        "prompt_sent": "Sana Takim Lideri gorevi verecegim, RabbitMQ baglantisi yapip gorevini deklare edeceksin, hazir misin?"
+      },
+      {
+        "terminal": "WORKER-1",
+        "window_id": 25536,
+        "status": "success",
+        "prompt_sent": "Sana Agent gorevi verecegim, RabbitMQ baglantisi yapip gorevini deklare edeceksin, hazir misin?"
+      },
+      {
+        "terminal": "WORKER-2",
+        "window_id": 25538,
+        "status": "success",
+        "prompt_sent": "Sana Worker gorevi verecegim, RabbitMQ baglantisi yapip gorevini deklare edeceksin, hazir misin?"
+      }
+    ],
+    "role_assignments": {
+      "LEADER": {
+        "window_id": 25534,
+        "role": "LEADER",
+        "prompt_sent": "Sana Takim Lideri gorevi verecegim, RabbitMQ baglantisi yapip gorevini deklare edeceksin, hazir misin?",
+        "status": "assigned"
+      },
+      "WORKER-1": {
+        "window_id": 25536,
+        "role": "WORKER-1",
+        "prompt_sent": "Sana Agent gorevi verecegim, RabbitMQ baglantisi yapip gorevini deklare edeceksin, hazir misin?",
+        "status": "assigned"
+      },
+      "WORKER-2": {
+        "window_id": 25538,
+        "role": "WORKER-2",
+        "prompt_sent": "Sana Worker gorevi verecegim, RabbitMQ baglantisi yapip gorevini deklare edeceksin, hazir misin?",
+        "status": "assigned"
+      }
+    },
+    "screenshots": [
+      "/Users/umitkacar/Documents/github-pluginagentmarketplace/claude-collective-intelligence/rabbitmq-agents/demos/demo-3-system-inspector/screenshots/response_leader_20251211_093425.jpg",
+      "/Users/umitkacar/Documents/github-pluginagentmarketplace/claude-collective-intelligence/rabbitmq-agents/demos/demo-3-system-inspector/screenshots/response_worker-1_20251211_093444.jpg",
+      "/Users/umitkacar/Documents/github-pluginagentmarketplace/claude-collective-intelligence/rabbitmq-agents/demos/demo-3-system-inspector/screenshots/response_worker-2_20251211_093502.jpg"
+    ],
+    "final_screenshot": "/Users/umitkacar/Documents/github-pluginagentmarketplace/claude-collective-intelligence/rabbitmq-agents/demos/demo-3-system-inspector/screenshots/role_prompter_final_20251211_093502.jpg",
+    "verification_checklist": [
+      "Her terminalde doğru rol mesajı var mı?",
+      "Her Claude \"hazırım\" dedi mi?",
+      "Window ID mapping doğru mu?"
+    ]
+  }
+}

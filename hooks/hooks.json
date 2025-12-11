@@ -1,31 +1,3 @@
 {
-  "hooks": {
-    "session-start": {
-      "description": "Initialize RabbitMQ connection when Claude Code session starts",
-      "enabled": false,
-      "command": "node scripts/hooks/session-start.js"
-    },
-    "pre-task": {
-      "description": "Validate task before execution",
-      "enabled": true,
-      "command": "node scripts/hooks/pre-task.js"
-    },
-    "post-task": {
-      "description": "Report task completion to team leader",
-      "enabled": true,
-      "command": "node scripts/hooks/post-task.js"
-    },
-    "health-check": {
-      "description": "Periodic health check and heartbeat",
-      "enabled": true,
-      "command": "node scripts/hooks/health-check.js",
-      "interval": 30000
-    },
-    "queue-monitor": {
-      "description": "Monitor queue depth and alert on backlog",
-      "enabled": true,
-      "command": "node scripts/hooks/queue-monitor.js",
-      "interval": 10000
-    }
-  }
+  "hooks": {}
 }

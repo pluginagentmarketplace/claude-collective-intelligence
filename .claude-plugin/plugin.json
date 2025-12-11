@@ -2,58 +2,31 @@
   "name": "ai-agent-orchestrator-rabbitmq",
   "version": "1.0.0",
   "description": "Ultra-advanced multi-agent orchestration system using RabbitMQ for distributed Claude Code instances. Enables team-like collaboration, task distribution, brainstorming, and result aggregation across independent sessions.",
-  "author": "Ultra Agent Team",
+  "author": {
+    "name": "Ultra Agent Team",
+    "email": "pluginagentmarketplace@gmail.com",
+    "url": "https://github.com/pluginagentmarketplace"
+  },
   "repository": "https://github.com/umitkacar/plugin-ai-agent-rabbitmq",
-  "keywords": [
-    "rabbitmq",
-    "orchestration",
-    "multi-agent",
-    "distributed",
-    "microservices",
-    "collaboration",
-    "task-queue",
-    "message-broker",
-    "agent-coordination",
-    "distributed-ai"
-  ],
   "agents": [
-    "agents/team-leader.md",
-    "agents/worker-agent.md",
-    "agents/collaborator-agent.md",
-    "agents/coordinator-agent.md",
-    "agents/monitor-agent.md"
+    "./agents/team-leader.md",
+    "./agents/worker-agent.md",
+    "./agents/collaborator-agent.md",
+    "./agents/coordinator-agent.md",
+    "./agents/monitor-agent.md"
   ],
   "commands": [
-    "commands/orchestrate.md",
-    "commands/assign-task.md",
-    "commands/brainstorm.md",
-    "commands/status.md",
-    "commands/join-team.md"
+    "./commands/orchestrate.md",
+    "./commands/assign-task.md",
+    "./commands/brainstorm.md",
+    "./commands/status.md",
+    "./commands/join-team.md"
   ],
   "skills": [
-    "skills/rabbitmq-ops/SKILL.md",
-    "skills/task-distribution/SKILL.md",
-    "skills/collaboration/SKILL.md",
-    "skills/result-aggregation/SKILL.md",
-    "skills/health-monitoring/SKILL.md"
-  ],
-  "hooks": "hooks/hooks.json",
-  "mcp": ".mcp.json",
-  "license": "MIT",
-  "requirements": {
-    "node": ">=18.0.0",
-    "rabbitmq": ">=3.12.0"
-  },
-  "features": [
-    "Multi-terminal agent orchestration",
-    "Distributed task queue with RabbitMQ",
-    "Real-time agent-to-agent communication",
-    "Collaborative brainstorming sessions",
-    "Automatic task distribution and load balancing",
-    "Result aggregation and consensus building",
-    "Continuous health monitoring",
-    "Failure detection and recovery",
-    "Git worktree integration",
-    "Persistent queue with message durability"
+    "./skills/rabbitmq-ops/SKILL.md",
+    "./skills/task-distribution/SKILL.md",
+    "./skills/collaboration/SKILL.md",
+    "./skills/result-aggregation/SKILL.md",
+    "./skills/health-monitoring/SKILL.md"
   ]
 }

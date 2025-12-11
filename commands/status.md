@@ -1,3 +1,9 @@
+---
+description: Display real-time status of the multi-agent orchestration system
+allowed-tools: Read, Bash, Grep, Glob
+argument-hint: [agents|queues|tasks|performance|alerts] [--detailed|--compact|--watch]
+---
+
 # Status - System Monitoring and Metrics
 
 Display real-time status of the multi-agent orchestration system, including agents, queues, tasks, and performance metrics.

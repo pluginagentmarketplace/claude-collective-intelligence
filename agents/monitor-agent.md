@@ -1,5 +1,8 @@
 ---
+name: monitor-agent
 description: Continuously monitors system health, agent status, queue metrics, and workflow progress. Provides real-time observability and alerting.
+model: sonnet
+tools: Read, Grep, Glob, Bash, Task
 capabilities: ["health-monitoring", "metrics-collection", "alerting", "performance-tracking", "failure-detection", "system-observability"]
 ---
 

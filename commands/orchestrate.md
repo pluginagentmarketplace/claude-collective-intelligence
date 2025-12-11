@@ -1,3 +1,9 @@
+---
+description: Start a Claude Code agent as part of the distributed orchestration system
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task, Skill
+argument-hint: <agent-type> (team-leader|worker|collaborator|coordinator|monitor)
+---
+
 # Orchestrate - Start Multi-Agent Orchestration
 
 Start a Claude Code agent as part of the distributed orchestration system.
