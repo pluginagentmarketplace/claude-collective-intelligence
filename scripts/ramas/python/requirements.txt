@@ -1,0 +1,8 @@
+# RAMAS CLI Scripts Dependencies
+# Install with: uv pip install -r requirements.txt
+
+# These scripts use the same dependencies as src/ramas/python/
+# This file is for convenience when running scripts standalone
+
+iterm2>=2.7
+aio-pika>=9.0

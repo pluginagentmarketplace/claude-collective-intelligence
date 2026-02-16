@@ -1,0 +1,18 @@
+# RAMAS Dashboard Backend Dependencies
+# Install: pip install -r requirements.txt
+# Or with uv: uv pip install -r requirements.txt
+
+# Core Framework
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+
+# WebSocket Support
+websockets>=12.0
+
+# Data Validation
+pydantic>=2.5.0
+
+# Development
+httpx>=0.26.0  # For testing
+pytest>=7.4.0
+pytest-asyncio>=0.23.0

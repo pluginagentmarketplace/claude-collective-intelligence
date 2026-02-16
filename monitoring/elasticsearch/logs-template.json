@@ -1,0 +1,198 @@
+{
+  "index_patterns": ["logs-*"],
+  "template": {
+    "settings": {
+      "number_of_shards": 5,
+      "number_of_replicas": 1,
+      "index.codec": "best_compression",
+      "index.refresh_interval": "30s",
+      "index.max_result_window": 50000,
+      "index.lifecycle.name": "logs-policy",
+      "index.lifecycle.rollover_alias": "logs-write",
+      "analysis": {
+        "analyzer": {
+          "logs_analyzer": {
+            "type": "custom",
+            "tokenizer": "standard",
+            "filter": ["lowercase", "stop"]
+          },
+          "keyword_analyzer": {
+            "type": "custom",
+            "tokenizer": "keyword"
+          }
+        }
+      }
+    },
+    "mappings": {
+      "properties": {
+        "@timestamp": {
+          "type": "date",
+          "format": "strict_date_optional_time||epoch_millis"
+        },
+        "timestamp": {
+          "type": "date"
+        },
+        "message": {
+          "type": "text",
+          "analyzer": "logs_analyzer",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "level": {
+          "type": "keyword"
+        },
+        "service": {
+          "type": "keyword"
+        },
+        "environment": {
+          "type": "keyword"
+        },
+        "trace_id": {
+          "type": "keyword"
+        },
+        "span_id": {
+          "type": "keyword"
+        },
+        "request_id": {
+          "type": "keyword"
+        },
+        "correlation_id": {
+          "type": "keyword"
+        },
+        "user_id": {
+          "type": "keyword"
+        },
+        "session_id": {
+          "type": "keyword"
+        },
+        "duration_ms": {
+          "type": "long"
+        },
+        "http_method": {
+          "type": "keyword"
+        },
+        "http_uri": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "http_status": {
+          "type": "integer"
+        },
+        "http_response_size": {
+          "type": "integer"
+        },
+        "client_ip": {
+          "type": "ip"
+        },
+        "user_agent": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "user_agent_parsed": {
+          "type": "object",
+          "properties": {
+            "user_agent": {
+              "type": "text"
+            },
+            "major": {
+              "type": "keyword"
+            },
+            "minor": {
+              "type": "keyword"
+            },
+            "patch": {
+              "type": "keyword"
+            },
+            "os": {
+              "type": "keyword"
+            },
+            "os_major": {
+              "type": "keyword"
+            },
+            "os_minor": {
+              "type": "keyword"
+            },
+            "os_patch": {
+              "type": "keyword"
+            },
+            "device": {
+              "type": "keyword"
+            }
+          }
+        },
+        "geoip": {
+          "type": "object",
+          "properties": {
+            "country_code2": {
+              "type": "keyword"
+            },
+            "country_name": {
+              "type": "keyword"
+            },
+            "city_name": {
+              "type": "keyword"
+            },
+            "latitude": {
+              "type": "geo_point"
+            },
+            "longitude": {
+              "type": "geo_point"
+            },
+            "location": {
+              "type": "geo_point"
+            }
+          }
+        },
+        "error_category": {
+          "type": "keyword"
+        },
+        "error_type": {
+          "type": "keyword"
+        },
+        "error_code": {
+          "type": "keyword"
+        },
+        "stack_trace": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "hostname": {
+          "type": "keyword"
+        },
+        "logger_name": {
+          "type": "keyword"
+        },
+        "tags": {
+          "type": "keyword"
+        },
+        "custom_fields": {
+          "type": "object",
+          "enabled": true
+        }
+      }
+    }
+  },
+  "priority": 100,
+  "version": 1,
+  "_meta": {
+    "description": "Template for application logs with full observability support",
+    "managed": true,
+    "version": "1.0.0"
+  }
+}

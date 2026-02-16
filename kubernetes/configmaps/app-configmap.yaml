@@ -1,0 +1,203 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: staging
+  labels:
+    app: agent-orchestrator
+data:
+  NODE_ENV: "staging"
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+  LOG_DIR: "/var/log/app"
+  APP_NAME: "Multi-Agent Orchestrator"
+  APP_VERSION: "1.0.0"
+  API_PREFIX: "/api/v1"
+  API_TIMEOUT: "30000"
+  CACHE_ENABLED: "true"
+  CACHE_DEFAULT_TTL: "600"
+  FEATURE_AUDIT_LOGGING: "true"
+  FEATURE_DISTRIBUTED_LOCKING: "true"
+  FEATURE_QUERY_CACHING: "true"
+  FEATURE_SESSION_PERSISTENCE: "true"
+  FEATURE_RATE_LIMITING: "true"
+  METRICS_ENABLED: "true"
+  METRICS_COLLECTION_INTERVAL: "60000"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: staging
+  labels:
+    app: postgres
+data:
+  POSTGRES_DB: "agent_orchestrator_staging"
+  POSTGRES_POOL_MIN: "5"
+  POSTGRES_POOL_MAX: "15"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: staging
+  labels:
+    app: redis
+data:
+  redis.conf: |
+    # Redis Configuration for Staging
+    port 6379
+    bind 0.0.0.0
+
+    # Memory management
+    maxmemory 512mb
+    maxmemory-policy allkeys-lru
+
+    # Persistence
+    appendonly yes
+    appendfsync everysec
+    appendfilename "appendonly.aof"
+
+    # Replication
+    # replicaof <masterip> <masterport>
+
+    # Security
+    # requirepass yourpassword (set via environment variable)
+
+    # Performance
+    tcp-backlog 511
+    timeout 0
+    tcp-keepalive 300
+    daemonize no
+    supervised no
+    pidfile /var/run/redis.pid
+    loglevel notice
+    logfile ""
+    databases 16
+
+    # Slow log
+    slowlog-log-slower-than 10000
+    slowlog-max-len 128
+
+    # Client output buffer
+    client-output-buffer-limit normal 0 0 0
+    client-output-buffer-limit replica 256mb 64mb 60
+    client-output-buffer-limit pubsub 32mb 8mb 60
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-scripts
+  namespace: staging
+  labels:
+    app: postgres
+data:
+  01-init-extensions.sql: |
+    -- Create essential extensions for staging
+    CREATE EXTENSION IF NOT EXISTS uuid-ossp;
+    CREATE EXTENSION IF NOT EXISTS pg_trgm;
+    CREATE EXTENSION IF NOT EXISTS jsonb_plpython3u;
+
+    -- Create application user if not exists
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'staging_user') THEN
+        CREATE USER staging_user WITH ENCRYPTED PASSWORD 'staging_secure_password_here';
+      END IF;
+    END
+    $$;
+
+    -- Grant privileges
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO staging_user;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO staging_user;
+    GRANT ALL PRIVILEGES ON DATABASE agent_orchestrator_staging TO staging_user;
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: monitoring-config
+  namespace: staging
+  labels:
+    app: prometheus
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+      external_labels:
+        cluster: 'staging'
+        environment: 'staging'
+
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets: []
+
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+
+      - job_name: 'kubernetes-apiservers'
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: default;kubernetes;https
+
+      - job_name: 'agent-orchestrator'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - staging
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: agent-orchestrator
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: pod
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: namespace
+
+      - job_name: 'postgres-exporter'
+        static_configs:
+          - targets: ['postgres-exporter:9187']
+
+      - job_name: 'redis-exporter'
+        static_configs:
+          - targets: ['redis-exporter:9121']
+
+      - job_name: 'node-exporter'
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_endpoints_name]
+            action: keep
+            regex: 'node-exporter'
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: staging
+  labels:
+    app: grafana
+data:
+  prometheus.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus:9090
+        isDefault: true
+        editable: true

@@ -1,0 +1,645 @@
+{
+  "version": "8.11.0",
+  "objects": [
+    {
+      "type": "dashboard",
+      "id": "app-performance-dashboard",
+      "attributes": {
+        "title": "Application Performance Monitoring",
+        "description": "Real-time APM and performance analytics",
+        "timeRestore": true,
+        "timeFrom": "now-6h",
+        "timeTo": "now",
+        "refreshInterval": {
+          "pause": false,
+          "value": 5000
+        },
+        "panels": [
+          {
+            "version": "8.11.0",
+            "type": "visualization",
+            "gridData": {
+              "x": 0,
+              "y": 0,
+              "w": 24,
+              "h": 12
+            },
+            "panelRefName": "panel_request_timeline"
+          },
+          {
+            "version": "8.11.0",
+            "type": "visualization",
+            "gridData": {
+              "x": 0,
+              "y": 12,
+              "w": 12,
+              "h": 10
+            },
+            "panelRefName": "panel_latency_heatmap"
+          },
+          {
+            "version": "8.11.0",
+            "type": "visualization",
+            "gridData": {
+              "x": 12,
+              "y": 12,
+              "w": 12,
+              "h": 10
+            },
+            "panelRefName": "panel_error_rates"
+          },
+          {
+            "version": "8.11.0",
+            "type": "visualization",
+            "gridData": {
+              "x": 0,
+              "y": 22,
+              "w": 8,
+              "h": 8
+            },
+            "panelRefName": "panel_top_slow_endpoints"
+          },
+          {
+            "version": "8.11.0",
+            "type": "visualization",
+            "gridData": {
+              "x": 8,
+              "y": 22,
+              "w": 8,
+              "h": 8
+            },
+            "panelRefName": "panel_http_status_distribution"
+          },
+          {
+            "version": "8.11.0",
+            "type": "visualization",
+            "gridData": {
+              "x": 16,
+              "y": 22,
+              "w": 8,
+              "h": 8
+            },
+            "panelRefName": "panel_throughput_rate"
+          }
+        ],
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": {
+            "query": {
+              "match_all": {}
+            },
+            "filter": [
+              {
+                "range": {
+                  "@timestamp": {
+                    "gte": "now-6h"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "references": []
+    },
+    {
+      "type": "visualization",
+      "id": "request-timeline",
+      "attributes": {
+        "title": "Request Timeline",
+        "description": "Request count and response time trend",
+        "visState": {
+          "title": "Request Timeline",
+          "type": "line",
+          "params": {
+            "grid": {
+              "categoryLines": false,
+              "valueAxis": "ValueAxis-1"
+            },
+            "categoryAxes": [
+              {
+                "id": "CategoryAxis-1",
+                "type": "category",
+                "scale": {
+                  "type": "linear"
+                },
+                "labels": {
+                  "show": true,
+                  "truncate": 100
+                },
+                "title": {}
+              }
+            ],
+            "valueAxes": [
+              {
+                "id": "ValueAxis-1",
+                "name": "Left",
+                "type": "value",
+                "scale": {
+                  "type": "linear"
+                },
+                "labels": {
+                  "show": true
+                },
+                "title": {
+                  "text": "Response Time (ms)"
+                }
+              },
+              {
+                "id": "ValueAxis-2",
+                "name": "Right",
+                "type": "value",
+                "scale": {
+                  "type": "linear"
+                },
+                "labels": {
+                  "show": true
+                },
+                "title": {
+                  "text": "Request Count"
+                }
+              }
+            ],
+            "seriesParams": [
+              {
+                "show": true,
+                "type": "line",
+                "interpolate": "linear",
+                "valueAxis": "ValueAxis-1",
+                "drawLinesBetweenPoints": true,
+                "lineWidth": 2
+              },
+              {
+                "show": true,
+                "type": "line",
+                "interpolate": "linear",
+                "valueAxis": "ValueAxis-2",
+                "drawLinesBetweenPoints": true,
+                "lineWidth": 2
+              }
+            ]
+          },
+          "aggs": [
+            {
+              "id": "1",
+              "enabled": true,
+              "type": "avg",
+              "params": {
+                "field": "duration_ms",
+                "customLabel": "Avg Response Time"
+              },
+              "schema": "metric"
+            },
+            {
+              "id": "2",
+              "enabled": true,
+              "type": "count",
+              "params": {},
+              "schema": "metric"
+            },
+            {
+              "id": "3",
+              "enabled": true,
+              "type": "date_histogram",
+              "params": {
+                "field": "@timestamp",
+                "interval": "auto",
+                "customInterval": "1m",
+                "format": "strict_date_histogram",
+                "min_doc_count": 0
+              },
+              "schema": "segment"
+            }
+          ]
+        },
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": {
+            "query": {
+              "match": {
+                "http_method": {
+                  "query": "*",
+                  "type": "phrase"
+                }
+              }
+            },
+            "index": "logs-*",
+            "filter": [
+              {
+                "exists": {
+                  "field": "duration_ms"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "visualization",
+      "id": "latency-heatmap",
+      "attributes": {
+        "title": "Latency Heatmap",
+        "description": "Latency distribution by endpoint",
+        "visState": {
+          "title": "Latency Heatmap",
+          "type": "heatmap",
+          "params": {
+            "valuePosition": "bottom",
+            "scale": "linear",
+            "scaleToDataBounds": true,
+            "colorsNumber": 10,
+            "colorsRange": [
+              {
+                "from": 0,
+                "to": 50,
+                "color": "#90EE90"
+              },
+              {
+                "from": 50,
+                "to": 100,
+                "color": "#FFD700"
+              },
+              {
+                "from": 100,
+                "to": 500,
+                "color": "#FF8C00"
+              },
+              {
+                "from": 500,
+                "to": 5000,
+                "color": "#FF4500"
+              }
+            ],
+            "invertColors": false,
+            "percentageMode": false,
+            "showLegend": true,
+            "legendPosition": "right",
+            "times": [],
+            "bucketSize": 10
+          },
+          "aggs": [
+            {
+              "id": "1",
+              "enabled": true,
+              "type": "count",
+              "params": {},
+              "schema": "metric"
+            },
+            {
+              "id": "2",
+              "enabled": true,
+              "type": "terms",
+              "params": {
+                "field": "http_uri",
+                "size": 10,
+                "order": "desc",
+                "orderBy": "1",
+                "customLabel": "Endpoint"
+              },
+              "schema": "segment"
+            },
+            {
+              "id": "3",
+              "enabled": true,
+              "type": "histogram",
+              "params": {
+                "field": "duration_ms",
+                "interval": 50,
+                "min_doc_count": 0,
+                "extended_bounds": {}
+              },
+              "schema": "segment"
+            }
+          ]
+        },
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": {
+            "query": {
+              "match_all": {}
+            },
+            "index": "logs-*",
+            "filter": [
+              {
+                "exists": {
+                  "field": "duration_ms"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "visualization",
+      "id": "error-rates-by-service",
+      "attributes": {
+        "title": "Error Rates by Service",
+        "description": "Error rate trends by service",
+        "visState": {
+          "title": "Error Rates by Service",
+          "type": "line",
+          "params": {
+            "grid": {
+              "categoryLines": false,
+              "valueAxis": "ValueAxis-1"
+            },
+            "categoryAxes": [
+              {
+                "id": "CategoryAxis-1",
+                "type": "category",
+                "scale": {
+                  "type": "linear"
+                },
+                "labels": {
+                  "show": true,
+                  "truncate": 100
+                },
+                "title": {}
+              }
+            ],
+            "valueAxes": [
+              {
+                "id": "ValueAxis-1",
+                "name": "Left",
+                "type": "value",
+                "scale": {
+                  "type": "linear"
+                },
+                "labels": {
+                  "show": true
+                },
+                "title": {
+                  "text": "Error Count"
+                }
+              }
+            ],
+            "seriesParams": [
+              {
+                "show": true,
+                "type": "line",
+                "interpolate": "linear",
+                "valueAxis": "ValueAxis-1",
+                "drawLinesBetweenPoints": true,
+                "lineWidth": 2
+              }
+            ]
+          },
+          "aggs": [
+            {
+              "id": "1",
+              "enabled": true,
+              "type": "count",
+              "params": {},
+              "schema": "metric"
+            },
+            {
+              "id": "2",
+              "enabled": true,
+              "type": "terms",
+              "params": {
+                "field": "service",
+                "size": 10,
+                "order": "desc",
+                "orderBy": "1"
+              },
+              "schema": "group"
+            },
+            {
+              "id": "3",
+              "enabled": true,
+              "type": "date_histogram",
+              "params": {
+                "field": "@timestamp",
+                "interval": "auto",
+                "customInterval": "5m",
+                "format": "strict_date_histogram"
+              },
+              "schema": "segment"
+            }
+          ]
+        },
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": {
+            "query": {
+              "match": {
+                "level": {
+                  "query": "error",
+                  "type": "phrase"
+                }
+              }
+            },
+            "index": "logs-*"
+          }
+        }
+      }
+    },
+    {
+      "type": "visualization",
+      "id": "top-slow-endpoints",
+      "attributes": {
+        "title": "Top 10 Slow Endpoints",
+        "description": "Endpoints with highest average latency",
+        "visState": {
+          "title": "Top 10 Slow Endpoints",
+          "type": "table",
+          "params": {
+            "perPage": 10,
+            "showPartialRows": false,
+            "showMeticsAtAllLevels": false,
+            "showTotal": false,
+            "totalFunc": "sum",
+            "percentageCol": ""
+          },
+          "aggs": [
+            {
+              "id": "1",
+              "enabled": true,
+              "type": "avg",
+              "params": {
+                "field": "duration_ms",
+                "customLabel": "Avg Latency (ms)"
+              },
+              "schema": "metric"
+            },
+            {
+              "id": "2",
+              "enabled": true,
+              "type": "count",
+              "params": {},
+              "schema": "metric"
+            },
+            {
+              "id": "3",
+              "enabled": true,
+              "type": "terms",
+              "params": {
+                "field": "http_uri",
+                "size": 10,
+                "order": "desc",
+                "orderBy": "1"
+              },
+              "schema": "bucket"
+            }
+          ]
+        },
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": {
+            "query": {
+              "match_all": {}
+            },
+            "index": "logs-*",
+            "filter": [
+              {
+                "exists": {
+                  "field": "duration_ms"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "visualization",
+      "id": "http-status-distribution",
+      "attributes": {
+        "title": "HTTP Status Distribution",
+        "description": "Breakdown of HTTP response codes",
+        "visState": {
+          "title": "HTTP Status Distribution",
+          "type": "pie",
+          "params": {
+            "shareYAxis": true,
+            "addTooltip": true,
+            "addLegend": true,
+            "isDonut": false,
+            "legendPosition": "right"
+          },
+          "aggs": [
+            {
+              "id": "1",
+              "enabled": true,
+              "type": "count",
+              "params": {},
+              "schema": "metric"
+            },
+            {
+              "id": "2",
+              "enabled": true,
+              "type": "terms",
+              "params": {
+                "field": "http_status",
+                "size": 10,
+                "order": "desc",
+                "orderBy": "1",
+                "customLabel": "Status Code"
+              },
+              "schema": "segment"
+            }
+          ]
+        },
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": {
+            "query": {
+              "match_all": {}
+            },
+            "index": "logs-*",
+            "filter": [
+              {
+                "exists": {
+                  "field": "http_status"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "visualization",
+      "id": "throughput-rate",
+      "attributes": {
+        "title": "Throughput Rate",
+        "description": "Requests per second over time",
+        "visState": {
+          "title": "Throughput Rate",
+          "type": "line",
+          "params": {
+            "grid": {
+              "categoryLines": false,
+              "valueAxis": "ValueAxis-1"
+            },
+            "categoryAxes": [
+              {
+                "id": "CategoryAxis-1",
+                "type": "category",
+                "scale": {
+                  "type": "linear"
+                },
+                "labels": {
+                  "show": true,
+                  "truncate": 100
+                },
+                "title": {}
+              }
+            ],
+            "valueAxes": [
+              {
+                "id": "ValueAxis-1",
+                "name": "Left",
+                "type": "value",
+                "scale": {
+                  "type": "linear"
+                },
+                "labels": {
+                  "show": true
+                },
+                "title": {
+                  "text": "Requests/sec"
+                }
+              }
+            ],
+            "seriesParams": [
+              {
+                "show": true,
+                "type": "line",
+                "interpolate": "linear",
+                "valueAxis": "ValueAxis-1",
+                "drawLinesBetweenPoints": true,
+                "lineWidth": 2
+              }
+            ]
+          },
+          "aggs": [
+            {
+              "id": "1",
+              "enabled": true,
+              "type": "count",
+              "params": {},
+              "schema": "metric"
+            },
+            {
+              "id": "2",
+              "enabled": true,
+              "type": "date_histogram",
+              "params": {
+                "field": "@timestamp",
+                "interval": "auto",
+                "customInterval": "10s",
+                "format": "strict_date_histogram"
+              },
+              "schema": "segment"
+            }
+          ]
+        },
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": {
+            "query": {
+              "match_all": {}
+            },
+            "index": "logs-*"
+          }
+        }
+      }
+    }
+  ]
+}

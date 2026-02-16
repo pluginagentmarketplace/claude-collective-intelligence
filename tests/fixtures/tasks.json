@@ -1,0 +1,119 @@
+{
+  "simpleTasks": [
+    {
+      "taskId": "task-001",
+      "type": "data.process",
+      "action": "transform",
+      "priority": 5,
+      "data": {
+        "input": "Hello World",
+        "transform": "uppercase"
+      },
+      "timeout": 5000
+    },
+    {
+      "taskId": "task-002",
+      "type": "calculation",
+      "action": "compute",
+      "priority": 7,
+      "data": {
+        "operation": "sum",
+        "values": [1, 2, 3, 4, 5]
+      },
+      "timeout": 3000
+    },
+    {
+      "taskId": "task-003",
+      "type": "file.operation",
+      "action": "read",
+      "priority": 3,
+      "data": {
+        "path": "/tmp/test.txt",
+        "encoding": "utf-8"
+      },
+      "timeout": 10000
+    }
+  ],
+  "complexTasks": [
+    {
+      "taskId": "task-complex-001",
+      "type": "workflow",
+      "action": "execute",
+      "priority": 9,
+      "data": {
+        "steps": [
+          {
+            "id": "step1",
+            "action": "fetch",
+            "params": { "url": "https://api.example.com/data" }
+          },
+          {
+            "id": "step2",
+            "action": "transform",
+            "params": { "format": "json" },
+            "dependsOn": ["step1"]
+          },
+          {
+            "id": "step3",
+            "action": "store",
+            "params": { "destination": "database" },
+            "dependsOn": ["step2"]
+          }
+        ]
+      },
+      "timeout": 30000
+    },
+    {
+      "taskId": "task-complex-002",
+      "type": "data.analysis",
+      "action": "analyze",
+      "priority": 8,
+      "data": {
+        "dataset": "sales_2024",
+        "metrics": ["total", "average", "trend"],
+        "filters": {
+          "region": "north",
+          "period": "Q1"
+        }
+      },
+      "timeout": 60000
+    }
+  ],
+  "errorTasks": [
+    {
+      "taskId": "task-error-001",
+      "type": "invalid.type",
+      "action": "unknown",
+      "priority": 1,
+      "data": {},
+      "timeout": 1000
+    },
+    {
+      "taskId": "task-error-002",
+      "type": "timeout.test",
+      "action": "sleep",
+      "priority": 5,
+      "data": {
+        "duration": 100000
+      },
+      "timeout": 1000
+    }
+  ],
+  "batchTasks": [
+    {
+      "taskId": "batch-001",
+      "type": "batch.process",
+      "action": "process_batch",
+      "priority": 6,
+      "data": {
+        "items": [
+          { "id": 1, "value": "item1" },
+          { "id": 2, "value": "item2" },
+          { "id": 3, "value": "item3" }
+        ],
+        "parallel": true
+      },
+      "timeout": 15000
+    }
+  ]
+}

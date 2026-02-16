@@ -1,0 +1,231 @@
+# Default values for agent-orchestrator
+# This is a YAML-formatted file, overridden by environment-specific values files
+
+replicaCount: 2
+
+image:
+  repository: plugin-ai-agent-rabbitmq
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "3000"
+  prometheus.io/path: "/metrics"
+
+podSecurityContext:
+  runAsNonRoot: false
+  runAsUser: 0
+  fsGroup: 0
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: false
+
+# Application Configuration
+app:
+  name: "Multi-Agent Orchestrator"
+  version: "1.0.0"
+  port: 3000
+  environment: "staging"
+  logLevel: "info"
+  logFormat: "json"
+
+service:
+  type: ClusterIP
+  port: 3000
+  targetPort: 3000
+  annotations: {}
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+  hosts:
+    - host: staging-api.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: agent-orchestrator-tls
+      hosts:
+        - staging-api.example.com
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values:
+            - agent-orchestrator
+        topologyKey: kubernetes.io/hostname
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 3000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 3000
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Database Configuration
+postgresql:
+  enabled: true
+  auth:
+    username: "staging_user"
+    password: "change-me"
+    database: "agent_orchestrator_staging"
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+  replica:
+    replicaCount: 0
+    persistence:
+      enabled: true
+      size: 10Gi
+
+# Redis Configuration
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: "change-me"
+  replica:
+    replicaCount: 0
+  master:
+    persistence:
+      enabled: true
+      size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 250m
+      memory: 512Mi
+
+# RabbitMQ Configuration
+rabbitmq:
+  enabled: true
+  auth:
+    username: "staging_user"
+    password: "change-me"
+  replicaCount: 1
+  persistence:
+    enabled: true
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+# Monitoring Configuration
+prometheus:
+  enabled: true
+  prometheusSpec:
+    retention: 15d
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+grafana:
+  enabled: true
+  adminPassword: "change-me"
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+# Security Configuration
+security:
+  jwtSecret: "change-me-in-production"
+  encryptionKey: "change-me-in-production"
+  sessionSecret: "change-me-in-production"
+  tls:
+    enabled: false
+    certManagerIssuer: "letsencrypt-staging"
+
+# Feature Flags
+features:
+  auditLogging: true
+  distributedLocking: true
+  queryCaching: true
+  sessionPersistence: true
+  rateLimiting: true
+  metricsCollection: true
+
+# Backup Configuration
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retentionDays: 7
+
+# Slack/Notification Configuration
+notifications:
+  slack:
+    enabled: false
+    webhookUrl: ""
+  email:
+    enabled: false
+    provider: "smtp"
+    host: ""
+    port: 587

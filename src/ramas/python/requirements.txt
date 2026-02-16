@@ -1,0 +1,34 @@
+# RAMAS Python API Dependencies
+# Install with: uv pip install -r requirements.txt
+#
+# Migration from AppleScript to iTerm2 Python API
+# Date: 2026-01-01
+
+# iTerm2 Python API - Official WebSocket-based API
+# Replaces: osascript/AppleScript
+iterm2>=2.7
+
+# Async RabbitMQ Client
+# Replaces: amqplib (Node.js)
+aio-pika>=9.0
+
+# Async File I/O for registry
+aiofiles>=23.0
+
+# MCP (Model Context Protocol) Python SDK
+# Replaces: @modelcontextprotocol/sdk (Node.js)
+mcp>=1.0
+
+# JSON Schema validation (for MCP tools)
+jsonschema>=4.0
+
+# Environment variable management
+python-dotenv>=1.0
+
+# Pattern C-003 v3: Redis for instant wake signals
+# Provides redis.asyncio for XREAD BLOCK
+redis>=4.5.0
+
+# Development dependencies (optional)
+# pytest>=8.0
+# pytest-asyncio>=0.23

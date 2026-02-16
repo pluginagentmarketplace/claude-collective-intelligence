@@ -1,0 +1,13 @@
+# AI Agent Orchestrator Python SDK Dependencies
+aiohttp>=3.8.0
+pydantic>=1.9.0
+python-dateutil>=2.8.0
+
+# Development dependencies
+pytest>=7.0.0
+pytest-asyncio>=0.18.0
+pytest-cov>=3.0.0
+black>=22.0.0
+isort>=5.10.0
+mypy>=0.950
+flake8>=4.0.0

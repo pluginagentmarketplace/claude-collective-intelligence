@@ -1,0 +1,102 @@
+{
+  "orchestratorMessages": [
+    {
+      "type": "orchestrator.task",
+      "taskId": "orch-001",
+      "action": "coordinate",
+      "payload": {
+        "description": "Coordinate multiple agents",
+        "agents": ["agent-1", "agent-2", "agent-3"]
+      },
+      "metadata": {
+        "createdAt": 1700000000000,
+        "createdBy": "orchestrator",
+        "version": "1.0"
+      }
+    },
+    {
+      "type": "orchestrator.broadcast",
+      "messageId": "broadcast-001",
+      "action": "status_request",
+      "payload": {},
+      "metadata": {
+        "createdAt": 1700000000000
+      }
+    }
+  ],
+  "agentMessages": [
+    {
+      "type": "agent.ready",
+      "agentId": "agent-001",
+      "capabilities": ["data.process", "calculation"],
+      "timestamp": 1700000000000
+    },
+    {
+      "type": "agent.status",
+      "agentId": "agent-002",
+      "status": "active",
+      "activeTasks": 2,
+      "timestamp": 1700000000000
+    }
+  ],
+  "heartbeatMessages": [
+    {
+      "type": "heartbeat",
+      "agentId": "agent-001",
+      "timestamp": 1700000000000,
+      "status": "active",
+      "metrics": {
+        "tasksProcessed": 42,
+        "tasksInProgress": 3,
+        "errors": 1,
+        "uptime": 3600000
+      }
+    }
+  ],
+  "resultMessages": [
+    {
+      "type": "task.result",
+      "taskId": "task-001",
+      "agentId": "agent-001",
+      "status": "completed",
+      "result": {
+        "success": true,
+        "data": {
+          "output": "HELLO WORLD"
+        },
+        "message": "Task completed successfully"
+      },
+      "timestamp": 1700000000000,
+      "duration": 1234
+    },
+    {
+      "type": "task.result",
+      "taskId": "task-002",
+      "agentId": "agent-002",
+      "status": "failed",
+      "result": {
+        "success": false,
+        "error": {
+          "code": "TIMEOUT",
+          "message": "Task execution timeout"
+        }
+      },
+      "timestamp": 1700000000000,
+      "duration": 5000
+    }
+  ],
+  "errorMessages": [
+    {
+      "type": "error",
+      "taskId": "task-error-001",
+      "agentId": "agent-001",
+      "error": {
+        "name": "ValidationError",
+        "message": "Invalid task type",
+        "code": "INVALID_TASK_TYPE"
+      },
+      "timestamp": 1700000000000,
+      "severity": "error"
+    }
+  ]
+}

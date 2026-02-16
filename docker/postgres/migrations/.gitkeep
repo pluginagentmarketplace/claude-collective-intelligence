@@ -1,0 +1,3 @@
+# PostgreSQL migration scripts directory
+# Place your database migration SQL files here
+# Files are executed in alphabetical order

@@ -1,0 +1,264 @@
+E2E Test Suite Structure
+========================
+
+tests/e2e/
+├── 📝 Test Files (5)
+│   ├── 5-terminal-scenario.test.js (374 lines) ⭐ DEMO
+│   │   └── Tests: 5 agents, collaborative task, brainstorming, aggregation
+│   │
+│   ├── git-worktree.test.js (468 lines)
+│   │   └── Tests: Worktree isolation, cross-worktree coordination
+│   │
+│   ├── failure-recovery.test.js (521 lines)
+│   │   └── Tests: Agent failures, retry logic, reassignment, recovery
+│   │
+│   ├── scaling.test.js (600 lines)
+│   │   └── Tests: Dynamic scaling, load balancing, rebalancing
+│   │
+│   └── performance.test.js (601 lines)
+│       └── Tests: 100 tasks, throughput, latency, resources, report
+│
+├── 🛠️  Infrastructure
+│   └── run-all.js (331 lines)
+│       ├── Runs all tests sequentially
+│       ├── Modes: --quick, --perf, --verbose
+│       └── Checks prerequisites, generates summary
+│
+├── 📚 Documentation
+│   ├── README.md (467 lines)
+│   │   ├── Test descriptions
+│   │   ├── Prerequisites
+│   │   ├── Running instructions
+│   │   ├── Troubleshooting
+│   │   └── CI/CD examples
+│   │
+│   ├── QUICKSTART.md (461 lines)
+│   │   ├── Quick commands
+│   │   ├── Expected output
+│   │   ├── Performance benchmarks
+│   │   └── Tips & tricks
+│   │
+│   └── TEST-SUITE-SUMMARY.md
+│       ├── Implementation overview
+│       ├── Test details
+│       ├── Metrics & benchmarks
+│       └── Usage examples
+│
+└── 📊 Output Files (generated during tests)
+    └── performance-report.json
+        ├── Test metadata
+        ├── Performance metrics
+        ├── Latency percentiles
+        ├── Worker utilization
+        └── Resource snapshots
+
+
+Test Flow Diagram
+=================
+
+                    ┌─────────────────┐
+                    │   Test Runner   │
+                    │   (run-all.js)  │
+                    └────────┬────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              │              │              │
+              ▼              ▼              ▼
+    ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+    │ Functional  │  │ Integration │  │ Performance │
+    └──────┬──────┘  └──────┬──────┘  └──────┬──────┘
+           │                │                 │
+           ▼                ▼                 ▼
+    ┌──────────┐     ┌──────────┐     ┌──────────┐
+    │5-Terminal│     │ Worktree │     │  Perf    │
+    │ Scenario │     │  Tests   │     │Benchmark │
+    └────┬─────┘     └────┬─────┘     └────┬─────┘
+         │                │                 │
+         ▼                ▼                 ▼
+    ┌──────────┐     ┌──────────┐     ┌──────────┐
+    │ Failure  │     │ Scaling  │     │  Report  │
+    │ Recovery │     │  Tests   │     │   JSON   │
+    └──────────┘     └──────────┘     └──────────┘
+
+
+Agent Architecture During Tests
+================================
+
+    Terminal 1 (Leader)
+         │
+         ├─► Assign Task ──────────────┐
+         │                              │
+         │                              ▼
+         │                      [agent.tasks queue]
+         │                              │
+         │                   ┌──────────┼──────────┐
+         │                   ▼          ▼          ▼
+         │           Terminal 2   Terminal 3   Terminal 4
+         │            (Worker)    (Worker)    (Collaborator)
+         │                │           │            │
+         │                ├─► Pick    │            │
+         │                │   Task    │            │
+         │                │           │            │
+         │                ├─► Initiate│            │
+         │                │   Brainstorm ─────────►│
+         │                │           │            │
+         │                │           │       Terminal 5
+         │                │           │     (Collaborator)
+         │                │           │            │
+         │                │◄──────────┴────────────┤
+         │                │    Responses           │
+         │                │                        │
+         │                ├─► Aggregate            │
+         │                │   Results              │
+         │                │                        │
+         │                ▼                        │
+         │        [agent.results queue]           │
+         │                │                        │
+         │◄───────────────┘                        │
+         │                                         │
+    Receives Result ◄───────────────────────────────┘
+
+
+NPM Scripts Overview
+====================
+
+Main Commands:
+  npm test                      → Run all E2E tests
+  npm run test:e2e              → Run all E2E tests
+  npm run test:e2e:quick        → Quick mode (skip performance)
+  npm run test:e2e:perf         → Performance tests only
+  npm run test:e2e:verbose      → Verbose output
+
+Individual Tests:
+  npm run test:e2e:5-terminal   → 5-terminal scenario
+  npm run test:e2e:worktree     → Git worktree integration
+  npm run test:e2e:failure      → Failure recovery
+  npm run test:e2e:scaling      → Scaling tests
+  npm run test:e2e:performance  → Performance benchmark
+
+
+Test Categories
+===============
+
+┌────────────────────────────────────────────────────────────┐
+│                     FUNCTIONAL TESTS                       │
+├────────────────────────────────────────────────────────────┤
+│ • 5-Terminal Scenario                                      │
+│   → Multi-agent collaboration                              │
+│   → Brainstorming workflow                                 │
+│   → Result aggregation                                     │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│                    INTEGRATION TESTS                       │
+├────────────────────────────────────────────────────────────┤
+│ • Git Worktree Integration                                 │
+│   → Worktree isolation                                     │
+│   → Cross-worktree coordination                            │
+│   → Conflict prevention                                    │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│                     RESILIENCE TESTS                       │
+├────────────────────────────────────────────────────────────┤
+│ • Failure Recovery                                         │
+│   → Agent failures                                         │
+│   → Task reassignment                                      │
+│   → Network interruptions                                  │
+│   → Auto-retry logic                                       │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│                      SCALING TESTS                         │
+├────────────────────────────────────────────────────────────┤
+│ • Dynamic Scaling                                          │
+│   → Scale up (2 → 5 workers)                               │
+│   → Scale down (5 → 2 workers)                             │
+│   → Load balancing                                         │
+│   → Rebalancing                                            │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│                    PERFORMANCE TESTS                       │
+├────────────────────────────────────────────────────────────┤
+│ • Performance Benchmark                                    │
+│   → 100 tasks across 5 workers                             │
+│   → Throughput measurement                                 │
+│   → Latency percentiles                                    │
+│   → Resource tracking                                      │
+│   → Report generation                                      │
+└────────────────────────────────────────────────────────────┘
+
+
+Test Statistics
+===============
+
+Total Files:          8 files
+Total Lines:          3,823 lines
+Test Files:           5 (2,895 lines)
+Infrastructure:       1 (331 lines)
+Documentation:        3 (928 lines)
+
+Average Test Size:    579 lines
+Largest Test:         performance.test.js (601 lines)
+Smallest Test:        5-terminal-scenario.test.js (374 lines)
+
+Total Test Duration:  150-295 seconds (full suite)
+Quick Mode Duration:  90-175 seconds (skip performance)
+
+
+Key Metrics Tracked
+===================
+
+Performance:
+  ⚡ Throughput (tasks/sec)
+  ⏱️  Latency (p50, p75, p90, p95, p99)
+  🕐 Task assignment time
+  🕑 Task processing time
+  🕒 End-to-end latency
+
+Resources:
+  💾 Memory usage (heap, RSS)
+  🖥️  CPU usage (user, system)
+  📊 Peak values
+  📈 Average values
+
+System:
+  👷 Worker utilization
+  🔢 Concurrency levels
+  ⚖️  Load balancing score
+  📊 Task distribution
+
+Reliability:
+  ✅ Success rate
+  ❌ Failure rate
+  🔄 Retry attempts
+  ⏰ Recovery time
+
+
+Getting Started
+===============
+
+1. Start RabbitMQ:
+   docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+
+2. Install dependencies:
+   npm install
+
+3. Run quick test:
+   npm run test:e2e:quick
+
+4. Run full suite:
+   npm test
+
+5. View results:
+   Check console output and performance-report.json
+
+
+For More Information
+====================
+
+→ Quick Start:    tests/e2e/QUICKSTART.md
+→ Full Docs:      tests/e2e/README.md
+→ Summary:        tests/e2e/TEST-SUITE-SUMMARY.md
+→ Test Manifest:  tests/e2e/.test-manifest.json

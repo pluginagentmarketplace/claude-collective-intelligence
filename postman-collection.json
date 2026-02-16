@@ -1,0 +1,826 @@
+{
+  "info": {
+    "name": "AI Agent Orchestrator RabbitMQ API",
+    "description": "Complete API collection for the multi-agent orchestration system using RabbitMQ",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Get JWT Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.environment.set('access_token', data.accessToken);",
+                  "  pm.environment.set('refresh_token', data.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agentId\": \"agent-550e8400-e29b-41d4-a716-446655440000\",\n  \"credentials\": {\n    \"type\": \"apiKey\",\n    \"apiKey\": \"{{api_key}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Agents",
+      "item": [
+        {
+          "name": "List Agents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/agents?state=idle&limit=10&page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "agents"
+              ],
+              "query": [
+                {
+                  "key": "state",
+                  "value": "idle"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Agent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.environment.set('agent_id', data.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"worker-agent-1\",\n  \"role\": \"worker\",\n  \"capabilities\": [\n    \"compute\",\n    \"analyze\"\n  ],\n  \"resources\": {\n    \"cpu\": 25,\n    \"memory\": 40,\n    \"network\": 250,\n    \"storage\": 2000\n  },\n  \"metadata\": {\n    \"description\": \"High-performance compute agent\",\n    \"tags\": [\n      \"compute\",\n      \"gpu-ready\"\n    ],\n    \"owner\": \"admin@example.com\",\n    \"team\": \"core-team\",\n    \"version\": \"1.0.0\"\n  },\n  \"config\": {\n    \"autoStart\": true,\n    \"maxConcurrentTasks\": 5,\n    \"taskTimeout\": 60000,\n    \"retryPolicy\": {\n      \"maxRetries\": 3,\n      \"retryDelay\": 1000,\n      \"backoffMultiplier\": 2\n    },\n    \"heartbeatInterval\": 5000\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/agents",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "agents"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Agent",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/agents/{{agent_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "agents",
+                "{{agent_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Agent",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"updates\": {\n    \"capabilities\": [\n      \"compute\",\n      \"analyze\",\n      \"generate\"\n    ],\n    \"resources\": {\n      \"cpu\": 30,\n      \"memory\": 50\n    }\n  },\n  \"reason\": \"Added generation capability for new workload\",\n  \"updatedBy\": \"admin@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/agents/{{agent_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "agents",
+                "{{agent_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Agent",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/agents/{{agent_id}}?force=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "agents",
+                "{{agent_id}}"
+              ],
+              "query": [
+                {
+                  "key": "force",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "List Tasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tasks?state=in_progress&priority=high&limit=20&page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tasks"
+              ],
+              "query": [
+                {
+                  "key": "state",
+                  "value": "in_progress"
+                },
+                {
+                  "key": "priority",
+                  "value": "high"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Submit Task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.environment.set('task_id', data.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Analyze Q4 Performance Metrics\",\n  \"type\": \"analyze\",\n  \"priority\": \"high\",\n  \"description\": \"Analyze Q4 performance metrics and generate insights for next quarter planning\",\n  \"category\": \"data_processing\",\n  \"input\": {\n    \"metrics\": [\n      {\n        \"name\": \"revenue\",\n        \"value\": 1000000\n      },\n      {\n        \"name\": \"efficiency\",\n        \"value\": 95.5\n      }\n    ]\n  },\n  \"config\": {\n    \"timeout\": 300000,\n    \"retryCount\": 3,\n    \"retryDelay\": 5000,\n    \"parallelizable\": true,\n    \"preemptible\": false\n  },\n  \"requirements\": {\n    \"resources\": {\n      \"cpu\": {\n        \"min\": 10,\n        \"preferred\": 25,\n        \"max\": 50\n      },\n      \"memory\": {\n        \"min\": 512,\n        \"preferred\": 1024,\n        \"max\": 2048\n      }\n    },\n    \"agents\": {\n      \"min\": 1,\n      \"max\": 3,\n      \"capabilities\": [\n        \"analyze\"\n      ]\n    }\n  },\n  \"metadata\": {\n    \"tags\": [\n      \"quarterly\",\n      \"performance\"\n    ],\n    \"submittedBy\": \"analyst@example.com\",\n    \"project\": \"Q4-Analysis\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tasks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tasks"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Task",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tasks/{{task_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tasks",
+                "{{task_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"updates\": {\n    \"state\": \"in_progress\",\n    \"priority\": \"urgent\",\n    \"progress\": 50,\n    \"assignedTo\": [\n      \"agent-550e8400-e29b-41d4-a716-446655440000\",\n      \"agent-550e8400-e29b-41d4-a716-446655440001\"\n    ]\n  },\n  \"reason\": \"Priority escalation due to deadline change\",\n  \"updatedBy\": \"manager@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tasks/{{task_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tasks",
+                "{{task_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Task Result",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tasks/{{task_id}}/result",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tasks",
+                "{{task_id}}",
+                "result"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel Task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tasks/{{task_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tasks",
+                "{{task_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Voting",
+      "item": [
+        {
+          "name": "List Voting Sessions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/voting/sessions?state=open&limit=20&page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "voting",
+                "sessions"
+              ],
+              "query": [
+                {
+                  "key": "state",
+                  "value": "open"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Voting Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.environment.set('session_id', data.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Choose optimization strategy for next quarter\",\n  \"question\": \"Which strategy should we prioritize?\",\n  \"description\": \"We need to decide between three strategies to optimize our system performance\",\n  \"options\": [\n    {\n      \"id\": \"opt-1\",\n      \"label\": \"Strategy A: Increase Parallelization\",\n      \"description\": \"Focus on parallel task processing to improve throughput\"\n    },\n    {\n      \"id\": \"opt-2\",\n      \"label\": \"Strategy B: Optimize Memory Usage\",\n      \"description\": \"Reduce memory footprint per task\"\n    },\n    {\n      \"id\": \"opt-3\",\n      \"label\": \"Strategy C: Hybrid Approach\",\n      \"description\": \"Combine both strategies\"\n    }\n  ],\n  \"algorithm\": \"confidence_weighted\",\n  \"timing\": {\n    \"deadline\": \"2024-12-31T23:59:59Z\",\n    \"extendable\": true,\n    \"maxExtensions\": 2\n  },\n  \"quorum\": {\n    \"minParticipation\": 0.75,\n    \"minAgents\": 5\n  },\n  \"security\": {\n    \"anonymousVoting\": false,\n    \"encryptVotes\": true,\n    \"auditTrail\": true\n  },\n  \"metadata\": {\n    \"initiatedBy\": \"admin-agent\",\n    \"category\": \"strategy\",\n    \"tags\": [\n      \"quarterly\",\n      \"important\"\n    ]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/voting/sessions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "voting",
+                "sessions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Voting Session",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/voting/sessions/{{session_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "voting",
+                "sessions",
+                "{{session_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cast Vote",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"{{session_id}}\",\n  \"agentId\": \"{{agent_id}}\",\n  \"vote\": {\n    \"type\": \"single\",\n    \"choice\": \"opt-1\"\n  },\n  \"confidence\": 0.95,\n  \"reasoning\": \"Strategy A aligns with our current infrastructure and goals\",\n  \"expertise\": {\n    \"level\": \"expert\",\n    \"domain\": \"optimization\",\n    \"yearsExperience\": 5\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/voting/sessions/{{session_id}}/vote",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "voting",
+                "sessions",
+                "{{session_id}}",
+                "vote"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Voting Results",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/voting/sessions/{{session_id}}/results",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "voting",
+                "sessions",
+                "{{session_id}}",
+                "results"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Achievements",
+      "item": [
+        {
+          "name": "List Achievements",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/achievements?category=speed&tier=gold&limit=20&page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "achievements"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "speed"
+                },
+                {
+                  "key": "tier",
+                  "value": "gold"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Claim Achievement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agentId\": \"{{agent_id}}\",\n  \"achievementId\": \"ach-speed-1\",\n  \"evidence\": {\n    \"taskCompletionTimes\": [\n      {\n        \"taskId\": \"task-550e8400-e29b-41d4-a716-446655440000\",\n        \"duration\": 15000\n      },\n      {\n        \"taskId\": \"task-550e8400-e29b-41d4-a716-446655440001\",\n        \"duration\": 12000\n      },\n      {\n        \"taskId\": \"task-550e8400-e29b-41d4-a716-446655440002\",\n        \"duration\": 18000\n      }\n    ]\n  },\n  \"metadata\": {\n    \"autoDetected\": false\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/achievements/claim",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "achievements",
+                "claim"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Leaderboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/achievements/leaderboard?type=points&period=weekly&limit=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "achievements",
+                "leaderboard"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "points"
+                },
+                {
+                  "key": "period",
+                  "value": "weekly"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health & Monitoring",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Readiness Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/ready",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ready"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/metrics",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "metrics"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "your_api_key_here",
+      "type": "string"
+    },
+    {
+      "key": "agent_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "task_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "session_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

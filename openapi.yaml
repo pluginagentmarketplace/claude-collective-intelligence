@@ -1,0 +1,2220 @@
+openapi: 3.0.3
+info:
+  title: "AI Agent Orchestrator RabbitMQ API"
+  description: |
+    Ultra-advanced multi-agent orchestration system using RabbitMQ with comprehensive
+    task distribution, voting systems, achievements, and gamification features.
+
+    ## Features
+    - Multi-agent coordination and task distribution
+    - Democratic voting systems with multiple algorithms
+    - Achievement and gamification systems
+    - JWT authentication and RBAC
+    - Health monitoring and metrics collection
+    - Rate limiting and request validation
+  version: "1.0.0"
+  contact:
+    name: "Support Team"
+    email: "support@orchestrator.local"
+  license:
+    name: "MIT"
+    url: "https://opensource.org/licenses/MIT"
+
+servers:
+  - url: "http://localhost:3000"
+    description: "Local development server"
+  - url: "http://localhost:3001"
+    description: "Production server"
+
+tags:
+  - name: "Agents"
+    description: "Agent lifecycle management (CRUD operations)"
+  - name: "Tasks"
+    description: "Task submission, management, and tracking"
+  - name: "Voting"
+    description: "Democratic voting system endpoints"
+  - name: "Achievements"
+    description: "Achievement and gamification endpoints"
+  - name: "Health"
+    description: "Health, readiness, and metrics endpoints"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "JWT token for authentication"
+    ApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: "API key for service-to-service authentication"
+
+  schemas:
+    # Error Schemas
+    Error:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          type: string
+          description: "Error code identifier"
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          description: "Human-readable error message"
+          example: "Invalid request parameters"
+        details:
+          type: object
+          description: "Detailed error information"
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+          description: "Error timestamp"
+        path:
+          type: string
+          description: "Request path that caused the error"
+        requestId:
+          type: string
+          format: uuid
+          description: "Request ID for tracking"
+
+    # Agent Schemas
+    Agent:
+      type: object
+      required:
+        - id
+        - name
+        - role
+        - state
+        - capabilities
+      properties:
+        id:
+          type: string
+          pattern: "^agent-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+          description: "Agent unique identifier"
+          example: "agent-550e8400-e29b-41d4-a716-446655440000"
+        name:
+          type: string
+          minLength: 3
+          maxLength: 50
+          pattern: "^[a-zA-Z0-9][-_a-zA-Z0-9]*$"
+          description: "Agent display name"
+          example: "Worker-Agent-1"
+        role:
+          type: string
+          enum: ["leader", "worker", "observer", "coordinator", "analyzer"]
+          description: "Agent role in the system"
+          example: "worker"
+        state:
+          type: string
+          enum: ["idle", "busy", "offline", "error", "maintenance"]
+          description: "Current agent state"
+          example: "idle"
+        capabilities:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            enum: ["compute", "analyze", "generate", "review", "coordinate", "monitor", "report", "validate", "transform", "aggregate"]
+          description: "Agent capabilities"
+          example: ["compute", "analyze"]
+        resources:
+          type: object
+          description: "Resource allocation"
+          properties:
+            cpu:
+              type: number
+              minimum: 0
+              maximum: 100
+              description: "CPU allocation percentage"
+            memory:
+              type: number
+              minimum: 0
+              maximum: 100
+              description: "Memory allocation percentage"
+            network:
+              type: number
+              minimum: 0
+              maximum: 1000
+              description: "Network bandwidth in Mbps"
+            storage:
+              type: number
+              minimum: 0
+              maximum: 10000
+              description: "Storage allocation in MB"
+        health:
+          type: object
+          description: "Agent health status"
+          properties:
+            status:
+              type: string
+              enum: ["healthy", "degraded", "unhealthy"]
+            checks:
+              type: object
+              properties:
+                cpu:
+                  type: boolean
+                memory:
+                  type: boolean
+                network:
+                  type: boolean
+                heartbeat:
+                  type: boolean
+            lastCheck:
+              type: string
+              format: date-time
+        metrics:
+          type: object
+          description: "Agent metrics"
+          properties:
+            cpuUsage:
+              type: number
+              minimum: 0
+              maximum: 100
+            memoryUsage:
+              type: number
+              minimum: 0
+              maximum: 100
+            activeTasks:
+              type: integer
+              minimum: 0
+            completedTasks:
+              type: integer
+              minimum: 0
+            failedTasks:
+              type: integer
+              minimum: 0
+            uptime:
+              type: integer
+              minimum: 0
+              description: "Uptime in seconds"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AgentCreationRequest:
+      type: object
+      required:
+        - name
+        - role
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 50
+          pattern: "^[a-zA-Z0-9][-_a-zA-Z0-9]*$"
+          example: "new-agent-1"
+        role:
+          type: string
+          enum: ["leader", "worker", "observer", "coordinator", "analyzer"]
+          example: "worker"
+        capabilities:
+          type: array
+          items:
+            type: string
+            enum: ["compute", "analyze", "generate", "review", "coordinate", "monitor", "report", "validate", "transform", "aggregate"]
+          minItems: 1
+          maxItems: 10
+          default: ["compute", "analyze"]
+        resources:
+          type: object
+          properties:
+            cpu:
+              type: number
+              minimum: 0
+              maximum: 100
+            memory:
+              type: number
+              minimum: 0
+              maximum: 100
+            network:
+              type: number
+              minimum: 0
+              maximum: 1000
+            storage:
+              type: number
+              minimum: 0
+              maximum: 10000
+          default:
+            cpu: 10
+            memory: 10
+            network: 100
+            storage: 100
+        metadata:
+          type: object
+          properties:
+            description:
+              type: string
+              maxLength: 500
+            tags:
+              type: array
+              items:
+                type: string
+                maxLength: 30
+              maxItems: 10
+            owner:
+              type: string
+              format: email
+            team:
+              type: string
+              maxLength: 50
+            version:
+              type: string
+              pattern: "^\\d+\\.\\d+\\.\\d+$"
+        config:
+          type: object
+          properties:
+            autoStart:
+              type: boolean
+              default: true
+            maxConcurrentTasks:
+              type: integer
+              minimum: 1
+              maximum: 100
+              default: 5
+            taskTimeout:
+              type: integer
+              minimum: 1000
+              maximum: 3600000
+              default: 60000
+            retryPolicy:
+              type: object
+              properties:
+                maxRetries:
+                  type: integer
+                  minimum: 0
+                  maximum: 10
+                  default: 3
+                retryDelay:
+                  type: integer
+                  minimum: 100
+                  maximum: 60000
+                  default: 1000
+                backoffMultiplier:
+                  type: number
+                  minimum: 1
+                  maximum: 5
+                  default: 2
+            heartbeatInterval:
+              type: integer
+              minimum: 1000
+              maximum: 60000
+              default: 5000
+
+    # Task Schemas
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - type
+        - state
+        - priority
+      properties:
+        id:
+          type: string
+          pattern: "^task-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+          description: "Task unique identifier"
+          example: "task-550e8400-e29b-41d4-a716-446655440000"
+        title:
+          type: string
+          minLength: 5
+          maxLength: 200
+          description: "Task title"
+          example: "Process customer data"
+        type:
+          type: string
+          enum: ["compute", "analyze", "generate", "transform", "validate", "aggregate", "report", "monitor"]
+          description: "Task type"
+          example: "analyze"
+        state:
+          type: string
+          enum: ["pending", "queued", "assigned", "in_progress", "completed", "failed", "cancelled"]
+          description: "Current task state"
+          example: "in_progress"
+        priority:
+          type: string
+          enum: ["low", "normal", "high", "urgent", "critical"]
+          default: "normal"
+          example: "high"
+        description:
+          type: string
+          maxLength: 2000
+          description: "Detailed task description"
+        category:
+          type: string
+          enum: ["data_processing", "machine_learning", "optimization", "simulation", "reporting", "maintenance", "testing"]
+          example: "data_processing"
+        progress:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: "Task progress percentage"
+          example: 75
+        assignedTo:
+          oneOf:
+            - type: string
+              description: "Single agent ID"
+            - type: array
+              items:
+                type: string
+              description: "Multiple agent IDs"
+          example: "agent-550e8400-e29b-41d4-a716-446655440000"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        estimatedDuration:
+          type: integer
+          minimum: 0
+          description: "Estimated duration in milliseconds"
+
+    TaskSubmissionRequest:
+      type: object
+      required:
+        - title
+        - type
+        - description
+      properties:
+        title:
+          type: string
+          minLength: 5
+          maxLength: 200
+          example: "Analyze performance metrics"
+        type:
+          type: string
+          enum: ["compute", "analyze", "generate", "transform", "validate", "aggregate", "report", "monitor"]
+          example: "analyze"
+        priority:
+          type: string
+          enum: ["low", "normal", "high", "urgent", "critical"]
+          default: "normal"
+          example: "high"
+        description:
+          type: string
+          maxLength: 2000
+          example: "Analyze the Q4 performance metrics and generate insights"
+        category:
+          type: string
+          enum: ["data_processing", "machine_learning", "optimization", "simulation", "reporting", "maintenance", "testing"]
+          example: "data_processing"
+        input:
+          description: "Task input data"
+          oneOf:
+            - type: object
+            - type: array
+            - type: string
+        config:
+          type: object
+          properties:
+            timeout:
+              type: integer
+              minimum: 1000
+              maximum: 3600000
+              default: 300000
+              description: "Timeout in milliseconds"
+            retryCount:
+              type: integer
+              minimum: 0
+              maximum: 10
+              default: 3
+            retryDelay:
+              type: integer
+              minimum: 100
+              maximum: 60000
+              default: 5000
+            parallelizable:
+              type: boolean
+              default: false
+            preemptible:
+              type: boolean
+              default: true
+        requirements:
+          type: object
+          properties:
+            resources:
+              type: object
+              properties:
+                cpu:
+                  type: object
+                  properties:
+                    min:
+                      type: number
+                    preferred:
+                      type: number
+                    max:
+                      type: number
+                memory:
+                  type: object
+                  properties:
+                    min:
+                      type: integer
+                    preferred:
+                      type: integer
+                    max:
+                      type: integer
+                gpu:
+                  type: boolean
+            agents:
+              type: object
+              properties:
+                min:
+                  type: integer
+                  minimum: 1
+                  default: 1
+                max:
+                  type: integer
+                  minimum: 1
+                  default: 10
+                preferred:
+                  type: array
+                  items:
+                    type: string
+                capabilities:
+                  type: array
+                  items:
+                    type: string
+
+    TaskResult:
+      type: object
+      required:
+        - id
+        - status
+        - output
+      properties:
+        id:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+          pattern: "^task-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+        status:
+          type: string
+          enum: ["completed", "failed", "partial"]
+        output:
+          description: "Task output"
+          oneOf:
+            - type: object
+            - type: array
+            - type: string
+        format:
+          type: string
+          enum: ["json", "xml", "csv", "binary", "text"]
+          default: "json"
+        execution:
+          type: object
+          properties:
+            startTime:
+              type: string
+              format: date-time
+            endTime:
+              type: string
+              format: date-time
+            duration:
+              type: integer
+              minimum: 0
+              description: "Duration in milliseconds"
+            attempts:
+              type: integer
+              minimum: 1
+            resources:
+              type: object
+              properties:
+                cpuTime:
+                  type: number
+                memoryPeak:
+                  type: integer
+                networkIn:
+                  type: integer
+                networkOut:
+                  type: integer
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+              message:
+                type: string
+              recoverable:
+                type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    # Voting Schemas
+    VotingSession:
+      type: object
+      required:
+        - id
+        - topic
+        - state
+        - options
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "Session unique identifier"
+        topic:
+          type: string
+          minLength: 5
+          maxLength: 500
+          description: "Voting topic"
+          example: "Choose the next optimization strategy"
+        question:
+          type: string
+          minLength: 10
+          maxLength: 1000
+          description: "Question to vote on"
+          example: "Which strategy should we implement?"
+        description:
+          type: string
+          maxLength: 5000
+        state:
+          type: string
+          enum: ["open", "closed", "calculating", "completed", "cancelled"]
+          description: "Session state"
+          example: "open"
+        algorithm:
+          type: string
+          enum: ["simple_majority", "confidence_weighted", "quadratic", "consensus", "ranked_choice"]
+          default: "simple_majority"
+        options:
+          type: array
+          minItems: 2
+          maxItems: 100
+          items:
+            type: object
+            required:
+              - id
+              - label
+            properties:
+              id:
+                type: string
+              label:
+                type: string
+              description:
+                type: string
+                maxLength: 500
+              metadata:
+                type: object
+                additionalProperties: true
+          example:
+            - id: "opt-1"
+              label: "Strategy A"
+              description: "Increase parallel processing"
+            - id: "opt-2"
+              label: "Strategy B"
+              description: "Optimize memory usage"
+        timing:
+          type: object
+          properties:
+            startTime:
+              type: string
+              format: date-time
+            deadline:
+              type: string
+              format: date-time
+            timeRemaining:
+              type: integer
+              description: "Time remaining in milliseconds"
+        participation:
+          type: object
+          properties:
+            totalEligible:
+              type: integer
+              minimum: 0
+            voted:
+              type: integer
+              minimum: 0
+            abstained:
+              type: integer
+              minimum: 0
+            participationRate:
+              type: number
+              minimum: 0
+              maximum: 1
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+
+    VotingSessionCreationRequest:
+      type: object
+      required:
+        - topic
+        - question
+        - options
+        - timing
+      properties:
+        topic:
+          type: string
+          minLength: 5
+          maxLength: 500
+          example: "Choose next optimization strategy"
+        question:
+          type: string
+          minLength: 10
+          maxLength: 1000
+          example: "Which strategy should we implement first?"
+        description:
+          type: string
+          maxLength: 5000
+        options:
+          type: array
+          minItems: 2
+          maxItems: 100
+          items:
+            type: object
+            required:
+              - id
+              - label
+            properties:
+              id:
+                type: string
+              label:
+                type: string
+              description:
+                type: string
+                maxLength: 500
+          example:
+            - id: "opt-1"
+              label: "Strategy A"
+            - id: "opt-2"
+              label: "Strategy B"
+        algorithm:
+          type: string
+          enum: ["simple_majority", "confidence_weighted", "quadratic", "consensus", "ranked_choice"]
+          default: "simple_majority"
+        timing:
+          type: object
+          required:
+            - deadline
+          properties:
+            startTime:
+              type: string
+              format: date-time
+            deadline:
+              type: string
+              format: date-time
+              example: "2024-12-31T23:59:59Z"
+            extendable:
+              type: boolean
+              default: false
+        quorum:
+          type: object
+          properties:
+            minParticipation:
+              type: number
+              minimum: 0
+              maximum: 1
+              default: 0.5
+            minAgents:
+              type: integer
+              minimum: 0
+        metadata:
+          type: object
+          properties:
+            initiatedBy:
+              type: string
+            category:
+              type: string
+              maxLength: 100
+            tags:
+              type: array
+              items:
+                type: string
+                maxLength: 30
+              maxItems: 20
+
+    Vote:
+      type: object
+      required:
+        - sessionId
+        - agentId
+        - vote
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+          description: "Voting session ID"
+        agentId:
+          type: string
+          description: "Agent casting the vote"
+          example: "agent-550e8400-e29b-41d4-a716-446655440000"
+        vote:
+          oneOf:
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: "single"
+                choice:
+                  type: string
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: "multiple"
+                choices:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: "ranked"
+                ranking:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 2
+            - type: object
+              properties:
+                type:
+                  type: string
+                  const: "weighted"
+                weights:
+                  type: object
+                  additionalProperties:
+                    type: number
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+          default: 1
+          description: "Confidence level of the vote"
+        reasoning:
+          type: string
+          maxLength: 1000
+          description: "Reasoning behind the vote"
+        timestamp:
+          type: string
+          format: date-time
+
+    VotingResults:
+      type: object
+      required:
+        - sessionId
+        - winner
+        - results
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        winner:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: "Winning option(s)"
+        algorithm:
+          type: string
+          enum: ["simple_majority", "confidence_weighted", "quadratic", "consensus", "ranked_choice"]
+        totalVotes:
+          type: integer
+          minimum: 0
+        validVotes:
+          type: integer
+          minimum: 0
+        participationRate:
+          type: number
+          minimum: 0
+          maximum: 1
+        results:
+          type: object
+          properties:
+            options:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  label:
+                    type: string
+                  votes:
+                    type: integer
+                  percentage:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                  rank:
+                    type: integer
+                    minimum: 1
+        quorum:
+          type: object
+          properties:
+            met:
+              type: boolean
+            details:
+              type: object
+        calculatedAt:
+          type: string
+          format: date-time
+
+    # Achievement Schemas
+    Achievement:
+      type: object
+      required:
+        - id
+        - name
+        - category
+      properties:
+        id:
+          type: string
+          description: "Achievement identifier"
+          example: "ach-speed-1"
+        name:
+          type: string
+          description: "Achievement name"
+          example: "Flash Processor"
+        category:
+          type: string
+          enum: ["speed", "quality", "collaboration", "endurance", "innovation", "leadership", "special", "legendary"]
+          example: "speed"
+        description:
+          type: string
+          description: "Achievement description"
+        tier:
+          type: string
+          enum: ["bronze", "silver", "gold", "platinum", "diamond", "legendary"]
+          example: "gold"
+        points:
+          type: integer
+          minimum: 0
+          description: "Points awarded"
+          example: 500
+        requirements:
+          type: object
+          description: "Requirements to unlock"
+          additionalProperties: true
+        unlockedBy:
+          type: array
+          items:
+            type: string
+          description: "Agents who have unlocked this"
+        createdAt:
+          type: string
+          format: date-time
+
+    AchievementClaimRequest:
+      type: object
+      required:
+        - agentId
+        - achievementId
+        - evidence
+      properties:
+        agentId:
+          type: string
+          description: "Agent claiming the achievement"
+          example: "agent-550e8400-e29b-41d4-a716-446655440000"
+        achievementId:
+          type: string
+          description: "Achievement ID being claimed"
+          example: "ach-speed-1"
+        evidence:
+          type: object
+          description: "Evidence supporting the claim"
+          properties:
+            taskCompletionTimes:
+              type: array
+              items:
+                type: object
+                properties:
+                  taskId:
+                    type: string
+                  duration:
+                    type: integer
+                    minimum: 0
+            qualityScores:
+              type: array
+              items:
+                type: object
+                properties:
+                  taskId:
+                    type: string
+                  score:
+                    type: number
+                    minimum: 0
+                    maximum: 100
+            metrics:
+              type: object
+              additionalProperties: true
+        metadata:
+          type: object
+          properties:
+            autoDetected:
+              type: boolean
+              default: false
+
+    LeaderboardEntry:
+      type: object
+      required:
+        - rank
+        - agentId
+        - score
+      properties:
+        rank:
+          type: integer
+          minimum: 1
+          description: "Rank position"
+        agentId:
+          type: string
+          description: "Agent identifier"
+        agentName:
+          type: string
+          description: "Agent name"
+        score:
+          type: number
+          description: "Score value"
+        change:
+          type: integer
+          description: "Rank change from last update"
+        stats:
+          type: object
+          properties:
+            primary:
+              type: number
+            trend:
+              type: string
+              enum: ["up", "down", "stable"]
+            percentile:
+              type: number
+              minimum: 0
+              maximum: 100
+        badges:
+          type: array
+          items:
+            type: string
+        tier:
+          type: string
+          enum: ["bronze", "silver", "gold", "platinum", "diamond", "legendary"]
+
+    # Health Schemas
+    HealthStatus:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: ["healthy", "degraded", "unhealthy"]
+          description: "Overall health status"
+        timestamp:
+          type: string
+          format: date-time
+        uptime:
+          type: number
+          description: "Uptime in seconds"
+        components:
+          type: object
+          properties:
+            rabbitmq:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: ["healthy", "unhealthy"]
+                latency:
+                  type: number
+                  description: "Latency in milliseconds"
+            database:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: ["healthy", "unhealthy"]
+                latency:
+                  type: number
+            redis:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: ["healthy", "unhealthy"]
+                latency:
+                  type: number
+        metrics:
+          type: object
+          properties:
+            cpuUsage:
+              type: number
+              minimum: 0
+              maximum: 100
+            memoryUsage:
+              type: number
+              minimum: 0
+              maximum: 100
+            diskUsage:
+              type: number
+              minimum: 0
+              maximum: 100
+            activeConnections:
+              type: integer
+              minimum: 0
+            requestsPerSecond:
+              type: number
+
+    ReadinessStatus:
+      type: object
+      required:
+        - ready
+      properties:
+        ready:
+          type: boolean
+          description: "Whether the service is ready for requests"
+        dependencies:
+          type: object
+          properties:
+            rabbitmq:
+              type: boolean
+            database:
+              type: boolean
+            redis:
+              type: boolean
+
+    Metrics:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        agents:
+          type: object
+          properties:
+            total:
+              type: integer
+            active:
+              type: integer
+            idle:
+              type: integer
+            offline:
+              type: integer
+        tasks:
+          type: object
+          properties:
+            pending:
+              type: integer
+            completed:
+              type: integer
+            failed:
+              type: integer
+            totalProcessed:
+              type: integer
+        performance:
+          type: object
+          properties:
+            avgTaskDuration:
+              type: number
+              description: "Average task duration in milliseconds"
+            successRate:
+              type: number
+              minimum: 0
+              maximum: 1
+            throughput:
+              type: number
+              description: "Tasks per second"
+
+  responses:
+    BadRequest:
+      description: "Bad request - invalid input"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: "VALIDATION_ERROR"
+            message: "Invalid request parameters"
+            details:
+              field: "priority"
+              issue: "must be one of: low, normal, high, urgent, critical"
+
+    Unauthorized:
+      description: "Unauthorized - missing or invalid authentication"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: "UNAUTHORIZED"
+            message: "Missing or invalid authentication token"
+
+    Forbidden:
+      description: "Forbidden - insufficient permissions"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: "FORBIDDEN"
+            message: "Insufficient permissions for this action"
+
+    NotFound:
+      description: "Resource not found"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: "NOT_FOUND"
+            message: "Agent not found"
+
+    RateLimited:
+      description: "Too many requests"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: "RATE_LIMIT_EXCEEDED"
+            message: "Rate limit exceeded. Maximum 100 requests per minute"
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: "Request limit per window"
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: "Requests remaining"
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: "Unix timestamp of rate limit reset"
+
+    InternalServerError:
+      description: "Internal server error"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: "INTERNAL_ERROR"
+            message: "Internal server error occurred"
+
+security:
+  - BearerAuth: []
+  - ApiKey: []
+
+paths:
+  # ========================= AGENTS ENDPOINTS =========================
+  /api/v1/agents:
+    get:
+      tags:
+        - "Agents"
+      summary: "List all agents"
+      operationId: "listAgents"
+      description: "Retrieve a list of all agents in the system with optional filtering and pagination"
+      parameters:
+        - name: state
+          in: query
+          description: "Filter by agent state"
+          schema:
+            type: string
+            enum: ["idle", "busy", "offline", "error", "maintenance"]
+        - name: role
+          in: query
+          description: "Filter by agent role"
+          schema:
+            type: string
+            enum: ["leader", "worker", "observer", "coordinator", "analyzer"]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: "Page number for pagination"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: "Results per page"
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: ["createdAt", "name", "state"]
+            default: "createdAt"
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: ["asc", "desc"]
+            default: "desc"
+      responses:
+        "200":
+          description: "List of agents"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Agent"
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+                      pages:
+                        type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      tags:
+        - "Agents"
+      summary: "Create a new agent"
+      operationId: "createAgent"
+      description: "Create a new agent with specified configuration"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentCreationRequest"
+            example:
+              name: "worker-agent-1"
+              role: "worker"
+              capabilities:
+                - compute
+                - analyze
+              resources:
+                cpu: 20
+                memory: 30
+                network: 200
+              config:
+                maxConcurrentTasks: 5
+                taskTimeout: 60000
+      responses:
+        "201":
+          description: "Agent created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/agents/{agentId}:
+    get:
+      tags:
+        - "Agents"
+      summary: "Get agent by ID"
+      operationId: "getAgent"
+      description: "Retrieve detailed information about a specific agent"
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: "Agent unique identifier"
+          schema:
+            type: string
+            pattern: "^agent-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+      responses:
+        "200":
+          description: "Agent details"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    put:
+      tags:
+        - "Agents"
+      summary: "Update agent"
+      operationId: "updateAgent"
+      description: "Update agent configuration and properties"
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: "Agent unique identifier"
+          schema:
+            type: string
+            pattern: "^agent-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - updates
+                - reason
+                - updatedBy
+              properties:
+                updates:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      minLength: 3
+                      maxLength: 50
+                    capabilities:
+                      type: array
+                      items:
+                        type: string
+                    resources:
+                      type: object
+                    config:
+                      type: object
+                reason:
+                  type: string
+                  maxLength: 500
+                  description: "Reason for update"
+                updatedBy:
+                  type: string
+                  description: "User or system making the update"
+      responses:
+        "200":
+          description: "Agent updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags:
+        - "Agents"
+      summary: "Delete agent"
+      operationId: "deleteAgent"
+      description: "Delete an agent from the system"
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: "Agent unique identifier"
+          schema:
+            type: string
+            pattern: "^agent-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+        - name: force
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: "Force delete even if agent has active tasks"
+      responses:
+        "204":
+          description: "Agent deleted successfully"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # ========================= TASKS ENDPOINTS =========================
+  /api/v1/tasks:
+    get:
+      tags:
+        - "Tasks"
+      summary: "List all tasks"
+      operationId: "listTasks"
+      description: "Retrieve a list of tasks with optional filtering"
+      parameters:
+        - name: state
+          in: query
+          schema:
+            type: string
+            enum: ["pending", "queued", "assigned", "in_progress", "completed", "failed", "cancelled"]
+          description: "Filter by task state"
+        - name: priority
+          in: query
+          schema:
+            type: string
+            enum: ["low", "normal", "high", "urgent", "critical"]
+          description: "Filter by priority"
+        - name: assignedTo
+          in: query
+          schema:
+            type: string
+          description: "Filter by assigned agent"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: "List of tasks"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Task"
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+                      pages:
+                        type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      tags:
+        - "Tasks"
+      summary: "Submit a new task"
+      operationId: "submitTask"
+      description: "Submit a new task for execution by agents"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskSubmissionRequest"
+            example:
+              title: "Analyze Q4 Performance"
+              type: "analyze"
+              priority: "high"
+              description: "Analyze Q4 performance metrics and generate insights"
+              category: "data_processing"
+              input:
+                data:
+                  - metric1: 100
+                  - metric2: 200
+              config:
+                timeout: 300000
+                retryCount: 3
+              requirements:
+                resources:
+                  cpu:
+                    min: 5
+                    preferred: 20
+                    max: 50
+      responses:
+        "201":
+          description: "Task submitted successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/tasks/{taskId}:
+    get:
+      tags:
+        - "Tasks"
+      summary: "Get task by ID"
+      operationId: "getTask"
+      description: "Retrieve detailed information about a specific task"
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: "Task unique identifier"
+          schema:
+            type: string
+            pattern: "^task-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+      responses:
+        "200":
+          description: "Task details"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    put:
+      tags:
+        - "Tasks"
+      summary: "Update task"
+      operationId: "updateTask"
+      description: "Update task status, priority, or other properties"
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: "Task unique identifier"
+          schema:
+            type: string
+            pattern: "^task-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - updates
+                - reason
+                - updatedBy
+              properties:
+                updates:
+                  type: object
+                  properties:
+                    state:
+                      type: string
+                      enum: ["pending", "queued", "assigned", "in_progress", "completed", "failed", "cancelled"]
+                    priority:
+                      type: string
+                      enum: ["low", "normal", "high", "urgent", "critical"]
+                    progress:
+                      type: number
+                      minimum: 0
+                      maximum: 100
+                    assignedTo:
+                      oneOf:
+                        - type: string
+                        - type: array
+                          items:
+                            type: string
+                reason:
+                  type: string
+                  maxLength: 500
+                updatedBy:
+                  type: string
+      responses:
+        "200":
+          description: "Task updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags:
+        - "Tasks"
+      summary: "Cancel task"
+      operationId: "cancelTask"
+      description: "Cancel a task"
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: "Task unique identifier"
+          schema:
+            type: string
+            pattern: "^task-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+      responses:
+        "204":
+          description: "Task cancelled successfully"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/tasks/{taskId}/result:
+    get:
+      tags:
+        - "Tasks"
+      summary: "Get task result"
+      operationId: "getTaskResult"
+      description: "Retrieve the result of a completed task"
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: "Task unique identifier"
+          schema:
+            type: string
+            pattern: "^task-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+      responses:
+        "200":
+          description: "Task result"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskResult"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # ========================= VOTING ENDPOINTS =========================
+  /api/v1/voting/sessions:
+    get:
+      tags:
+        - "Voting"
+      summary: "List voting sessions"
+      operationId: "listVotingSessions"
+      description: "Retrieve a list of voting sessions"
+      parameters:
+        - name: state
+          in: query
+          schema:
+            type: string
+            enum: ["open", "closed", "calculating", "completed", "cancelled"]
+          description: "Filter by session state"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: "List of voting sessions"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/VotingSession"
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      tags:
+        - "Voting"
+      summary: "Create voting session"
+      operationId: "createVotingSession"
+      description: "Create a new voting session for agent decision-making"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VotingSessionCreationRequest"
+            example:
+              topic: "Choose next optimization strategy"
+              question: "Which strategy should we implement?"
+              options:
+                - id: "opt-1"
+                  label: "Strategy A"
+                  description: "Increase parallel processing"
+                - id: "opt-2"
+                  label: "Strategy B"
+                  description: "Optimize memory usage"
+              algorithm: "simple_majority"
+              timing:
+                deadline: "2024-12-31T23:59:59Z"
+              metadata:
+                initiatedBy: "admin-agent"
+                category: "strategy"
+      responses:
+        "201":
+          description: "Voting session created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VotingSession"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/voting/sessions/{sessionId}:
+    get:
+      tags:
+        - "Voting"
+      summary: "Get voting session"
+      operationId: "getVotingSession"
+      description: "Retrieve details of a specific voting session"
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          description: "Session unique identifier"
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: "Voting session details"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VotingSession"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/voting/sessions/{sessionId}/vote:
+    post:
+      tags:
+        - "Voting"
+      summary: "Cast vote"
+      operationId: "castVote"
+      description: "Cast a vote in an active voting session"
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          description: "Session unique identifier"
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Vote"
+            example:
+              sessionId: "550e8400-e29b-41d4-a716-446655440000"
+              agentId: "agent-550e8400-e29b-41d4-a716-446655440000"
+              vote:
+                type: "single"
+                choice: "opt-1"
+              confidence: 0.95
+              reasoning: "Strategy A aligns with our performance goals"
+      responses:
+        "201":
+          description: "Vote recorded"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  voteId:
+                    type: string
+                    format: uuid
+                  sessionId:
+                    type: string
+                    format: uuid
+                  recorded:
+                    type: boolean
+                  timestamp:
+                    type: string
+                    format: date-time
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/voting/sessions/{sessionId}/results:
+    get:
+      tags:
+        - "Voting"
+      summary: "Get voting results"
+      operationId: "getVotingResults"
+      description: "Retrieve results of a completed voting session"
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          description: "Session unique identifier"
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: "Voting results"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VotingResults"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # ========================= ACHIEVEMENTS ENDPOINTS =========================
+  /api/v1/achievements:
+    get:
+      tags:
+        - "Achievements"
+      summary: "List achievements"
+      operationId: "listAchievements"
+      description: "Retrieve a list of available achievements"
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: ["speed", "quality", "collaboration", "endurance", "innovation", "leadership", "special", "legendary"]
+          description: "Filter by category"
+        - name: tier
+          in: query
+          schema:
+            type: string
+            enum: ["bronze", "silver", "gold", "platinum", "diamond", "legendary"]
+          description: "Filter by tier"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: "List of achievements"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Achievement"
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/achievements/claim:
+    post:
+      tags:
+        - "Achievements"
+      summary: "Claim achievement"
+      operationId: "claimAchievement"
+      description: "Claim an achievement with evidence"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AchievementClaimRequest"
+            example:
+              agentId: "agent-550e8400-e29b-41d4-a716-446655440000"
+              achievementId: "ach-speed-1"
+              evidence:
+                taskCompletionTimes:
+                  - taskId: "task-550e8400-e29b-41d4-a716-446655440000"
+                    duration: 15000
+                  - taskId: "task-550e8400-e29b-41d4-a716-446655440001"
+                    duration: 12000
+      responses:
+        "201":
+          description: "Achievement claim submitted"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  claimId:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum: ["pending", "approved", "rejected"]
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/achievements/leaderboard:
+    get:
+      tags:
+        - "Achievements"
+      summary: "Get leaderboard"
+      operationId: "getLeaderboard"
+      description: "Retrieve leaderboard rankings"
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: ["points", "achievements", "tasks", "efficiency"]
+            default: "points"
+          description: "Leaderboard type"
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: ["daily", "weekly", "monthly", "alltime"]
+            default: "alltime"
+          description: "Time period"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        "200":
+          description: "Leaderboard data"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  period:
+                    type: string
+                  entries:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LeaderboardEntry"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # ========================= HEALTH ENDPOINTS =========================
+  /health:
+    get:
+      tags:
+        - "Health"
+      summary: "Health check"
+      operationId: "healthCheck"
+      description: "Check overall system health"
+      security: []
+      responses:
+        "200":
+          description: "System is healthy"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+              example:
+                status: "healthy"
+                timestamp: "2024-01-15T10:30:00Z"
+                uptime: 86400
+                components:
+                  rabbitmq:
+                    status: "healthy"
+                    latency: 5
+                  database:
+                    status: "healthy"
+                    latency: 10
+                  redis:
+                    status: "healthy"
+                    latency: 3
+                metrics:
+                  cpuUsage: 45
+                  memoryUsage: 62
+                  activeConnections: 150
+        "503":
+          description: "System is unhealthy"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /ready:
+    get:
+      tags:
+        - "Health"
+      summary: "Readiness check"
+      operationId: "readinessCheck"
+      description: "Check if service is ready to handle requests"
+      security: []
+      responses:
+        "200":
+          description: "Service is ready"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessStatus"
+              example:
+                ready: true
+                dependencies:
+                  rabbitmq: true
+                  database: true
+                  redis: true
+        "503":
+          description: "Service is not ready"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessStatus"
+
+  /metrics:
+    get:
+      tags:
+        - "Health"
+      summary: "Metrics collection"
+      operationId: "getMetrics"
+      description: "Retrieve system metrics in Prometheus format"
+      security: []
+      produces:
+        - text/plain
+      responses:
+        "200":
+          description: "Prometheus metrics"
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: |
+                  # HELP agent_count Total number of agents
+                  # TYPE agent_count gauge
+                  agent_count{state="idle"} 15
+                  agent_count{state="busy"} 8
+                  # HELP task_duration_ms Task execution duration
+                  # TYPE task_duration_ms histogram
+                  task_duration_ms_bucket{le="1000"} 100
+        "500":
+          $ref: "#/components/responses/InternalServerError"

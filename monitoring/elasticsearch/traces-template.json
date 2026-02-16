@@ -1,0 +1,149 @@
+{
+  "index_patterns": ["jaeger-span-*", "traces-*"],
+  "template": {
+    "settings": {
+      "number_of_shards": 5,
+      "number_of_replicas": 1,
+      "index.codec": "best_compression",
+      "index.refresh_interval": "5s",
+      "index.max_result_window": 50000
+    },
+    "mappings": {
+      "properties": {
+        "@timestamp": {
+          "type": "date",
+          "format": "strict_date_optional_time||epoch_millis"
+        },
+        "traceID": {
+          "type": "keyword"
+        },
+        "trace_id": {
+          "type": "keyword"
+        },
+        "spanID": {
+          "type": "keyword"
+        },
+        "span_id": {
+          "type": "keyword"
+        },
+        "parentSpanID": {
+          "type": "keyword"
+        },
+        "parent_span_id": {
+          "type": "keyword"
+        },
+        "operationName": {
+          "type": "keyword"
+        },
+        "operation_name": {
+          "type": "keyword"
+        },
+        "serviceName": {
+          "type": "keyword"
+        },
+        "service_name": {
+          "type": "keyword"
+        },
+        "processID": {
+          "type": "keyword"
+        },
+        "process_id": {
+          "type": "keyword"
+        },
+        "tags": {
+          "type": "object",
+          "properties": {
+            "span.kind": {
+              "type": "keyword"
+            },
+            "http.method": {
+              "type": "keyword"
+            },
+            "http.url": {
+              "type": "text"
+            },
+            "http.status_code": {
+              "type": "integer"
+            },
+            "db.statement": {
+              "type": "text"
+            },
+            "db.type": {
+              "type": "keyword"
+            },
+            "error": {
+              "type": "boolean"
+            },
+            "error.kind": {
+              "type": "keyword"
+            },
+            "message": {
+              "type": "text"
+            }
+          }
+        },
+        "logs": {
+          "type": "nested",
+          "properties": {
+            "timestamp": {
+              "type": "date",
+              "format": "epoch_millis"
+            },
+            "fields": {
+              "type": "object"
+            }
+          }
+        },
+        "startTime": {
+          "type": "date",
+          "format": "epoch_millis"
+        },
+        "start_time": {
+          "type": "date",
+          "format": "epoch_millis"
+        },
+        "duration": {
+          "type": "long"
+        },
+        "duration_ms": {
+          "type": "long"
+        },
+        "flags": {
+          "type": "integer"
+        },
+        "references": {
+          "type": "nested",
+          "properties": {
+            "refType": {
+              "type": "keyword"
+            },
+            "traceID": {
+              "type": "keyword"
+            },
+            "spanID": {
+              "type": "keyword"
+            }
+          }
+        },
+        "process": {
+          "type": "object",
+          "properties": {
+            "serviceName": {
+              "type": "keyword"
+            },
+            "tags": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    }
+  },
+  "priority": 100,
+  "version": 1,
+  "_meta": {
+    "description": "Template for distributed traces with Jaeger spans",
+    "managed": true,
+    "version": "1.0.0"
+  }
+}

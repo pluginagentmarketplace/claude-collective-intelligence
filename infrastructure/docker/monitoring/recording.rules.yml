@@ -1,0 +1,294 @@
+# Prometheus Recording Rules
+# Generated: 2025-12-07 (Week 2 Phase 4 - Infrastructure Organization)
+# Purpose: Pre-compute frequently used queries for better dashboard performance
+# Documentation: https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/
+
+groups:
+  # ============================================
+  # HTTP Request Metrics (5m rates)
+  # ============================================
+  - name: http_request_metrics
+    interval: 30s
+    rules:
+      # Request rate per job
+      - record: job:http_requests:rate5m
+        expr: rate(http_requests_total[5m])
+
+      # Request rate per status code
+      - record: job:http_requests:rate5m:status
+        expr: rate(http_requests_total[5m]) by (status, job)
+
+      # Error rate (5xx responses)
+      - record: job:http_errors:rate5m
+        expr: rate(http_requests_total{status=~"5.."}[5m])
+
+      # Client error rate (4xx responses)
+        - record: job:http_client_errors:rate5m
+        expr: rate(http_requests_total{status=~"4.."}[5m])
+
+      # Success rate (2xx + 3xx responses)
+      - record: job:http_success:rate5m
+        expr: rate(http_requests_total{status=~"[23].."}[5m])
+
+  # ============================================
+  # HTTP Response Time Metrics
+  # ============================================
+  - name: http_latency_metrics
+    interval: 30s
+    rules:
+      # p50 (median) response time
+      - record: job:http_response_time:p50
+        expr: histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m]))
+
+      # p95 response time
+      - record: job:http_response_time:p95
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+
+      # p99 response time
+      - record: job:http_response_time:p99
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))
+
+      # Average response time
+      - record: job:http_response_time:avg
+        expr: rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m])
+
+  # ============================================
+  # RabbitMQ Metrics
+  # ============================================
+  - name: rabbitmq_metrics
+    interval: 30s
+    rules:
+      # Total messages in all queues
+      - record: rabbitmq:queue_messages:total
+        expr: sum(rabbitmq_queue_messages)
+
+      # Message publishing rate
+      - record: rabbitmq:messages_published:rate5m
+        expr: rate(rabbitmq_channel_messages_published_total[5m])
+
+      # Message consumption rate
+      - record: rabbitmq:messages_consumed:rate5m
+        expr: rate(rabbitmq_channel_messages_consumed_total[5m])
+
+      # Message acknowledgment rate
+      - record: rabbitmq:messages_acked:rate5m
+        expr: rate(rabbitmq_channel_messages_acked_total[5m])
+
+      # Message delivery rate
+      - record: rabbitmq:messages_delivered:rate5m
+        expr: rate(rabbitmq_channel_messages_delivered_total[5m])
+
+      # Queue backlog (ready messages)
+      - record: rabbitmq:queue_messages_ready:sum
+        expr: sum(rabbitmq_queue_messages_ready)
+
+      # Memory usage percentage
+      - record: rabbitmq:memory_used:percentage
+        expr: (rabbitmq_node_mem_used / rabbitmq_node_mem_limit) * 100
+
+  # ============================================
+  # PostgreSQL Metrics
+  # ============================================
+  - name: postgres_metrics
+    interval: 30s
+    rules:
+      # Active connections
+      - record: postgres:connections:active
+        expr: sum(pg_stat_activity_count{state="active"})
+
+      # Idle connections
+      - record: postgres:connections:idle
+        expr: sum(pg_stat_activity_count{state="idle"})
+
+      # Total connections
+      - record: postgres:connections:total
+        expr: sum(pg_stat_activity_count)
+
+      # Transaction rate
+      - record: postgres:transactions:rate5m
+        expr: rate(pg_stat_database_xact_commit[5m]) + rate(pg_stat_database_xact_rollback[5m])
+
+      # Rollback rate
+      - record: postgres:transactions_rollback:rate5m
+        expr: rate(pg_stat_database_xact_rollback[5m])
+
+      # Tuple operations rate
+      - record: postgres:tuples_fetched:rate5m
+        expr: rate(pg_stat_database_tup_fetched[5m])
+
+      - record: postgres:tuples_inserted:rate5m
+        expr: rate(pg_stat_database_tup_inserted[5m])
+
+      - record: postgres:tuples_updated:rate5m
+        expr: rate(pg_stat_database_tup_updated[5m])
+
+      - record: postgres:tuples_deleted:rate5m
+        expr: rate(pg_stat_database_tup_deleted[5m])
+
+  # ============================================
+  # Redis Metrics
+  # ============================================
+  - name: redis_metrics
+    interval: 30s
+    rules:
+      # Commands per second
+      - record: redis:commands:rate5m
+        expr: rate(redis_commands_processed_total[5m])
+
+      # Hit rate
+      - record: redis:keyspace_hit_rate
+        expr: rate(redis_keyspace_hits_total[5m]) / (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))
+
+      # Eviction rate
+      - record: redis:evictions:rate5m
+        expr: rate(redis_evicted_keys_total[5m])
+
+      # Memory usage percentage
+      - record: redis:memory_used:percentage
+        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100
+
+      # Connected clients
+      - record: redis:clients:connected
+        expr: redis_connected_clients
+
+  # ============================================
+  # System CPU Metrics
+  # ============================================
+  - name: system_cpu_metrics
+    interval: 30s
+    rules:
+      # CPU usage by mode (user, system, iowait, etc.)
+      - record: instance:node_cpu:rate5m
+        expr: rate(node_cpu_seconds_total[5m])
+
+      # Total CPU utilization (1 - idle)
+      - record: instance:node_cpu_utilization:rate5m
+        expr: 1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance)
+
+      # CPU usage percentage
+      - record: instance:node_cpu:usage_percentage
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+
+  # ============================================
+  # System Memory Metrics
+  # ============================================
+  - name: system_memory_metrics
+    interval: 30s
+    rules:
+      # Memory usage percentage
+      - record: instance:node_memory:usage_percentage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+
+      # Memory available (GB)
+      - record: instance:node_memory:available_gb
+        expr: node_memory_MemAvailable_bytes / 1024 / 1024 / 1024
+
+      # Memory used (GB)
+      - record: instance:node_memory:used_gb
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / 1024 / 1024 / 1024
+
+  # ============================================
+  # System Disk Metrics
+  # ============================================
+  - name: system_disk_metrics
+    interval: 30s
+    rules:
+      # Disk usage percentage
+      - record: instance:node_disk:usage_percentage
+        expr: (1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) * 100
+
+      # Disk I/O rate
+      - record: instance:node_disk_io:rate5m
+        expr: rate(node_disk_io_time_seconds_total[5m])
+
+      # Disk read rate (MB/s)
+      - record: instance:node_disk_read:rate5m_mb
+        expr: rate(node_disk_read_bytes_total[5m]) / 1024 / 1024
+
+      # Disk write rate (MB/s)
+      - record: instance:node_disk_write:rate5m_mb
+        expr: rate(node_disk_written_bytes_total[5m]) / 1024 / 1024
+
+  # ============================================
+  # System Network Metrics
+  # ============================================
+  - name: system_network_metrics
+    interval: 30s
+    rules:
+      # Network receive rate (MB/s)
+      - record: instance:node_network_receive:rate5m_mb
+        expr: rate(node_network_receive_bytes_total[5m]) / 1024 / 1024
+
+      # Network transmit rate (MB/s)
+      - record: instance:node_network_transmit:rate5m_mb
+        expr: rate(node_network_transmit_bytes_total[5m]) / 1024 / 1024
+
+      # Network errors rate
+      - record: instance:node_network_errors:rate5m
+        expr: rate(node_network_receive_errs_total[5m]) + rate(node_network_transmit_errs_total[5m])
+
+  # ============================================
+  # Orchestrator Application Metrics
+  # ============================================
+  - name: orchestrator_metrics
+    interval: 30s
+    rules:
+      # Task processing rate
+      - record: orchestrator:tasks_processed:rate5m
+        expr: rate(orchestrator_tasks_completed_total[5m])
+
+      # Task failure rate
+      - record: orchestrator:tasks_failed:rate5m
+        expr: rate(orchestrator_tasks_failed_total[5m])
+
+      # Task success rate percentage
+      - record: orchestrator:tasks_success_rate:percentage
+        expr: (rate(orchestrator_tasks_completed_total[5m]) / (rate(orchestrator_tasks_completed_total[5m]) + rate(orchestrator_tasks_failed_total[5m]))) * 100
+
+      # Average task duration
+      - record: orchestrator:task_duration:avg
+        expr: rate(orchestrator_task_duration_seconds_sum[5m]) / rate(orchestrator_task_duration_seconds_count[5m])
+
+      # Agent utilization
+      - record: orchestrator:agent_utilization:percentage
+        expr: (orchestrator_agents_busy / orchestrator_agents_total) * 100
+
+  # ============================================
+  # Aggregated Service Health Score
+  # ============================================
+  - name: service_health_scores
+    interval: 30s
+    rules:
+      # Overall system health (0-100)
+      # Factors: service availability, resource usage, error rates
+      - record: system:health_score
+        expr: |
+          (
+            avg(up) * 40 +
+            (1 - avg(instance:node_cpu:usage_percentage) / 100) * 20 +
+            (1 - avg(instance:node_memory:usage_percentage) / 100) * 20 +
+            (1 - avg(instance:node_disk:usage_percentage) / 100) * 20
+          )
+
+# ============================================
+# Recording Rules Best Practices
+# ============================================
+#
+# 1. Use recording rules for frequently queried metrics
+# 2. Pre-compute aggregations over time windows (5m, 1h, 1d)
+# 3. Name recording rules descriptively: level:metric:operations
+# 4. Keep recording rules simple and focused
+# 5. Monitor recording rule evaluation time
+#
+# ============================================
+# Recording Rule Naming Convention
+# ============================================
+#
+# Format: level:metric:operations
+#
+# Examples:
+# - job:http_requests:rate5m (job-level HTTP request rate)
+# - instance:node_cpu:usage_percentage (instance-level CPU usage)
+# - cluster:requests:sum (cluster-level aggregation)
+#
+# ============================================

@@ -1,0 +1,173 @@
+# Elastic APM Server Configuration
+# Receives and processes application performance monitoring data
+
+########################## APM Server Configuration ##########################
+
+# ==================== Network configuration ====================
+apm-server:
+  host: 0.0.0.0:8200
+
+  # Path for the healthcheck
+  healthcheck:
+    enabled: true
+
+  # Anonymous API access for RUM and JS monitoring
+  auth:
+    anonymous:
+      enabled: true
+      allow_agent: [RUM, JS]
+      allow_service: [~.] # All services
+
+  # RUM (Real User Monitoring) configuration
+  rum:
+    enabled: true
+    # Allow all origins for RUM
+    allow_origins: ["*"]
+    allow_headers: ["Content-Type", "X-Elastic-APM-*"]
+    expose_headers: ["X-Elastic-APM-*"]
+    # RUM-specific agent config endpoint
+    library_pattern: "node_modules|~"
+    exclude_from_grouping: "^/test/|^/static/"
+
+  # Request pool size
+  request_pool_size: 1024
+
+  # Concurrency settings
+  concurrency:
+    requests: 1024
+    responses: 1024
+
+  # Frontend API endpoint for RUM
+  frontend:
+    enabled: true
+    rate_limit: 30 # per second per IP
+
+  # gRPC receiver for OpenTelemetry
+  grpc:
+    enabled: true
+    host: 0.0.0.0:50051
+
+# ==================== Output configuration ====================
+output.elasticsearch:
+  enabled: true
+  hosts:
+    - "elasticsearch-main:9200"
+
+  # Index configuration
+  index: "apm-%{[observer.version]}-%{+yyyy.MM.dd}"
+  pipeline: "_grok_pipeline_version,v1"
+
+  # Connection settings
+  bulk_max_size: 2000
+  flush_interval: "10s"
+  backoff.init: "1s"
+  backoff.max: "60s"
+  max_retries: 3
+  timeout: "30s"
+
+# ==================== Logging configuration ====================
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/apm-server
+  name: apm-server.log
+  keepfiles: 7
+  permissions: 0644
+
+# ==================== Metrics configuration ====================
+monitoring:
+  enabled: true
+  cluster_uuid: ""
+
+# ==================== Sampling configuration ====================
+apm-server.sampling:
+  enabled: true
+  keep_unsampled: false
+  tail_sampling:
+    policies:
+      - type: "latency"
+        latency:
+          threshold_ms: 100
+          include_errors: true
+      - type: "probabilistic"
+        probabilistic:
+          sampling_percentage: 10
+      - type: "service_name"
+        service_name:
+          match: ".*"
+          sampling_percentage: 50
+
+# ==================== Transaction settings ====================
+apm-server.default_service_environment: "production"
+apm-server.transaction.ignore_urls:
+  - "/health"
+  - "/healthz"
+  - "/ping"
+  - "/metrics"
+  - "*.js"
+  - "*.css"
+
+# ==================== Span settings ====================
+apm-server.span.index.suffix: ""
+apm-server.error.index.suffix: ""
+apm-server.metric.index.suffix: ""
+
+# ==================== Agent config ====================
+apm-server.agent.config.enabled: true
+apm-server.agent.config.cache.expiration: "30s"
+
+# ==================== API configuration ====================
+apm-server.api:
+  enabled: true
+  response_headers:
+    X-Content-Type-Options: "nosniff"
+
+# ==================== Data stream settings ====================
+apm-server.data_streams:
+  enabled: true
+  namespace: "default"
+
+# ==================== Feature flags ====================
+apm-server.features:
+  - name: "metrics"
+    enabled: true
+  - name: "logs"
+    enabled: true
+  - name: "traces"
+    enabled: true
+  - name: "profiles"
+    enabled: true
+
+# ==================== SSL/TLS configuration ====================
+# Uncomment for HTTPS
+# apm-server.ssl:
+#   enabled: true
+#   certificate: "/path/to/cert.crt"
+#   key: "/path/to/key.key"
+#   cipher_suites:
+#     - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+#     - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+#     - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+#     - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+#   verification_mode: full
+#   supported_protocols: [TLSv1.2, TLSv1.3]
+
+# ==================== Event settings ====================
+apm-server.default_backend_services:
+  - "elasticsearch"
+  - "kibana"
+
+# ==================== Resource limits ====================
+apm-server.max_content_length: "262144000" # 250MB
+apm-server.read_timeout: "3600s"
+apm-server.shutdown_timeout: "30s"
+
+# ==================== Memory mapping ====================
+apm-server.mmap:
+  enabled: true
+
+# ==================== Env vars ====================
+# Use environment variables:
+# - ELASTICSEARCH_HOSTS=http://elasticsearch-main:9200
+# - APM_SAMPLE_RATE=1.0
+# - APM_TRANSACTION_SAMPLE_RATE=1.0

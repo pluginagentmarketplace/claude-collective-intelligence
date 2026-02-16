@@ -1,0 +1,88 @@
+
+# Development overrides for docker-compose.yml
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  rabbitmq:
+    environment:
+      # Enable verbose logging in development
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbit log_levels [{connection,info},{default,info}]
+    volumes:
+      # Mount custom RabbitMQ configuration for development
+      - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    labels:
+      dev.mode: "true"
+      dev.service: "rabbitmq"
+
+  postgres:
+    environment:
+      # Enable statement logging for debugging
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    command:
+      - "postgres"
+      - "-c"
+      - "log_statement=all"
+      - "-c"
+      - "log_connections=on"
+      - "-c"
+      - "log_disconnections=on"
+      - "-c"
+      - "max_connections=200"
+    volumes:
+      # Mount SQL seed data for development
+      - ./docker/postgres/seed:/docker-entrypoint-initdb.d/seed:ro
+    labels:
+      dev.mode: "true"
+      dev.service: "postgres"
+
+  redis:
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis123} --loglevel verbose
+    labels:
+      dev.mode: "true"
+      dev.service: "redis"
+
+  # Redis Commander - Redis Management UI (dev only)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: ai-agent-redis-commander
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_HOSTS: "local:redis:6379:0:${REDIS_PASSWORD:-redis123}"
+      HTTP_USER: ${REDIS_COMMANDER_USER:-admin}
+      HTTP_PASSWORD: ${REDIS_COMMANDER_PASSWORD:-admin123}
+    networks:
+      - agent_network
+    depends_on:
+      - redis
+    restart: unless-stopped
+    labels:
+      dev.mode: "true"
+      dev.service: "redis-commander"
+
+  # PgAdmin - PostgreSQL Management UI (dev only)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ai-agent-pgadmin
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@aiagent.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./docker/pgadmin/servers.json:/pgadmin4/servers.json:ro
+    networks:
+      - agent_network
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    labels:
+      dev.mode: "true"
+      dev.service: "pgadmin"
+
+volumes:
+  pgadmin_data:
+    name: ai-agent-pgadmin-data

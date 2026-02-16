@@ -1,0 +1,74 @@
+{
+  "workerAgent": {
+    "agentId": "worker-001",
+    "agentName": "Worker Agent 1",
+    "type": "worker",
+    "capabilities": [
+      "data.process",
+      "file.operation",
+      "calculation"
+    ],
+    "maxConcurrentTasks": 5,
+    "heartbeatInterval": 30000,
+    "autoReconnect": true,
+    "reconnectDelay": 5000,
+    "prefetchCount": 3,
+    "queues": {
+      "tasks": "worker_tasks",
+      "results": "worker_results"
+    }
+  },
+  "coordinatorAgent": {
+    "agentId": "coordinator-001",
+    "agentName": "Coordinator Agent",
+    "type": "coordinator",
+    "capabilities": [
+      "coordination",
+      "workflow.execution",
+      "task.distribution"
+    ],
+    "maxConcurrentTasks": 10,
+    "heartbeatInterval": 20000,
+    "autoReconnect": true,
+    "reconnectDelay": 3000,
+    "prefetchCount": 5,
+    "queues": {
+      "tasks": "coordinator_tasks",
+      "results": "coordinator_results"
+    }
+  },
+  "monitorAgent": {
+    "agentId": "monitor-001",
+    "agentName": "Monitor Agent",
+    "type": "monitor",
+    "capabilities": [
+      "monitoring",
+      "health.check",
+      "metrics.collection"
+    ],
+    "maxConcurrentTasks": 1,
+    "heartbeatInterval": 15000,
+    "autoReconnect": true,
+    "reconnectDelay": 2000,
+    "prefetchCount": 1,
+    "queues": {
+      "heartbeats": "agent_heartbeats",
+      "metrics": "agent_metrics"
+    }
+  },
+  "testAgent": {
+    "agentId": "test-agent-001",
+    "agentName": "Test Agent",
+    "type": "test",
+    "capabilities": ["test"],
+    "maxConcurrentTasks": 3,
+    "heartbeatInterval": 10000,
+    "autoReconnect": false,
+    "reconnectDelay": 1000,
+    "prefetchCount": 1,
+    "queues": {
+      "tasks": "test_tasks",
+      "results": "test_results"
+    }
+  }
+}

@@ -1,0 +1,272 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "timestamp": "2024-11-18T00:00:00Z",
+    "environment": "baseline",
+    "description": "Production-grade baseline performance metrics",
+    "hardware": {
+      "cpu": "8-core",
+      "memory": "16GB",
+      "network": "1Gbps"
+    },
+    "systemConfig": {
+      "nodejs_version": "18.0.0+",
+      "rabbitmq_version": "3.12.0",
+      "postgres_version": "15.0",
+      "redis_version": "7.0",
+      "k6_version": "0.48.0"
+    }
+  },
+  "targets": {
+    "responseTime": {
+      "p50": {
+        "value": 100,
+        "unit": "ms",
+        "description": "50th percentile"
+      },
+      "p95": {
+        "value": 500,
+        "unit": "ms",
+        "description": "95th percentile (critical SLA)",
+        "requirement": "MUST meet"
+      },
+      "p99": {
+        "value": 2000,
+        "unit": "ms",
+        "description": "99th percentile"
+      },
+      "max": {
+        "value": 5000,
+        "unit": "ms",
+        "description": "Maximum acceptable"
+      }
+    },
+    "throughput": {
+      "minimum": {
+        "value": 1000,
+        "unit": "req/sec",
+        "description": "Minimum acceptable throughput"
+      },
+      "target": {
+        "value": 2000,
+        "unit": "req/sec",
+        "description": "Target throughput"
+      },
+      "peak": {
+        "value": 5000,
+        "unit": "req/sec",
+        "description": "Peak throughput"
+      }
+    },
+    "errorRate": {
+      "normal": {
+        "value": 0.1,
+        "unit": "%",
+        "description": "Normal operations"
+      },
+      "high": {
+        "value": 1.0,
+        "unit": "%",
+        "description": "High load conditions"
+      },
+      "spike": {
+        "value": 5.0,
+        "unit": "%",
+        "description": "During traffic spikes"
+      }
+    },
+    "resources": {
+      "memory_per_worker": {
+        "value": 500,
+        "unit": "MB",
+        "description": "Maximum memory per worker"
+      },
+      "cpu_usage": {
+        "value": 80,
+        "unit": "%",
+        "description": "Maximum CPU utilization"
+      },
+      "db_connections": {
+        "value": 80,
+        "unit": "% of pool",
+        "description": "Database connection pool threshold"
+      },
+      "rabbitmq_latency": {
+        "value": 100,
+        "unit": "ms",
+        "description": "RabbitMQ message latency P95"
+      }
+    }
+  },
+  "load_test_baseline": {
+    "phase": "load_test_10_to_1000_rps",
+    "duration_seconds": 900,
+    "virtual_users_max": 1000,
+    "results": {
+      "total_requests": 900000,
+      "successful_requests": 899100,
+      "failed_requests": 900,
+      "error_rate": 0.1,
+      "response_time": {
+        "p50": 95,
+        "p95": 450,
+        "p99": 1850,
+        "max": 4200,
+        "unit": "ms"
+      },
+      "throughput": {
+        "value": 1541,
+        "unit": "req/sec"
+      },
+      "data_received": {
+        "value": 1.2,
+        "unit": "GB"
+      },
+      "data_sent": {
+        "value": 180,
+        "unit": "MB"
+      }
+    }
+  },
+  "spike_test_baseline": {
+    "phase": "spike_5x_increase",
+    "duration_seconds": 600,
+    "virtual_users_max": 500,
+    "results": {
+      "normal_phase": {
+        "duration": 120,
+        "virtual_users": 100,
+        "throughput": 154,
+        "p95_latency": 450,
+        "error_rate": 0.1
+      },
+      "spike_phase": {
+        "duration": 180,
+        "virtual_users": 500,
+        "throughput": 770,
+        "p95_latency": 850,
+        "error_rate": 2.5,
+        "notes": "Increased latency acceptable during spike"
+      },
+      "recovery_phase": {
+        "duration": 300,
+        "virtual_users": 0,
+        "recovery_time_to_normal": 120,
+        "notes": "System recovers to normal latency in ~2 minutes"
+      }
+    }
+  },
+  "soak_test_baseline": {
+    "phase": "soak_30_minutes",
+    "duration_seconds": 1800,
+    "virtual_users": 50,
+    "results": {
+      "total_requests": 54000,
+      "successful_requests": 53850,
+      "failed_requests": 150,
+      "error_rate": 0.28,
+      "response_time": {
+        "p95": 480,
+        "p99": 2100,
+        "unit": "ms"
+      },
+      "memory_analysis": {
+        "initial": 250,
+        "final": 320,
+        "growth_mb": 70,
+        "growth_percent": 28,
+        "notes": "Expected growth, no memory leak detected"
+      },
+      "cache_performance": {
+        "hit_ratio": 82,
+        "unit": "%",
+        "notes": "Cache performance stable throughout test"
+      },
+      "connection_pool": {
+        "size": 25,
+        "max_connections_used": 24,
+        "notes": "Pool health maintained, no exhaustion"
+      }
+    }
+  },
+  "scenario_results": {
+    "agent_task_distribution": {
+      "description": "Distribute 1000 concurrent tasks",
+      "metrics": {
+        "enqueue_latency_p95": 95,
+        "processing_latency_p95": 480,
+        "queue_message_rate": 1850,
+        "agent_availability": 99.9,
+        "unit": "ms, req/sec, %"
+      }
+    },
+    "voting_consensus": {
+      "description": "100 agents voting on 50 proposals",
+      "metrics": {
+        "vote_submission_latency_p95": 180,
+        "vote_counting_latency": 450,
+        "consensus_time": 2500,
+        "accuracy": 100,
+        "unit": "ms, %"
+      }
+    },
+    "database_crud": {
+      "description": "Insert 10000 records",
+      "metrics": {
+        "insert_latency_p95": 45,
+        "batch_throughput": 2200,
+        "connection_pool_utilization": 45,
+        "transaction_throughput": 1850,
+        "unit": "ms, ops/sec, %, txn/sec"
+      }
+    },
+    "cache_performance": {
+      "description": "10000 requests with varying hit rates",
+      "metrics": {
+        "hit_ratio": 82,
+        "miss_penalty_latency": 45,
+        "redis_latency_p95": 5,
+        "memory_footprint": 128,
+        "unit": "%, ms, ms, MB"
+      }
+    }
+  },
+  "recommendations": {
+    "performance_improvements": [
+      "Implement connection pooling for better resource utilization",
+      "Add caching layer for frequently accessed data",
+      "Optimize database queries with proper indexing",
+      "Implement circuit breaker for graceful degradation"
+    ],
+    "scaling_strategy": [
+      "Horizontal scaling: Add more worker instances when throughput > 2000 req/sec",
+      "Vertical scaling: Increase CPU/memory for high-latency scenarios",
+      "Database optimization: Use read replicas for high read workloads",
+      "Cache strategy: Implement Redis cluster for distributed caching"
+    ],
+    "monitoring": [
+      "Monitor P95 latency continuously",
+      "Track error rate anomalies",
+      "Watch memory growth trends",
+      "Monitor RabbitMQ queue depths",
+      "Track database connection pool utilization"
+    ]
+  },
+  "notes": {
+    "critical": [
+      "P95 response time MUST remain under 500ms",
+      "Error rate in normal conditions MUST stay below 0.1%",
+      "System must handle 5x traffic spikes without crashing"
+    ],
+    "important": [
+      "Cache hit ratio should be maintained above 80%",
+      "Database connection pool should not exceed 80% utilization",
+      "Memory should not grow beyond 500MB per worker"
+    ],
+    "informational": [
+      "Throughput target is 2000 req/sec",
+      "Peak throughput should handle 5000 req/sec",
+      "Graceful degradation during spikes is acceptable"
+    ]
+  }
+}

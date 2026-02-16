@@ -1,0 +1,146 @@
+# Kibana Configuration
+# Visualization and analytics platform for Elasticsearch
+
+server:
+  name: kibana
+  host: "0.0.0.0"
+  port: 5601
+  basePath: ""
+  rewriteBasePath: false
+  publicBaseUrl: "http://localhost:5601"
+  maxPayloadBytes: 1048576
+  autoListen: true
+
+elasticsearch:
+  hosts:
+    - http://elasticsearch-main:9200
+  username: elastic
+  password: changeme
+  requestHeadersWhitelist:
+    - authorization
+  requestTimeout: 30000
+  shardTimeout: 30000
+  ssl:
+    verificationMode: none
+    alwaysPresentCertificate: false
+
+kibana:
+  defaultAppId: discover
+  index: .kibana
+
+logging:
+  level: info
+  appenders:
+    default:
+      type: console
+      layout:
+        type: pattern
+        highlight: true
+
+xpack:
+  security:
+    enabled: false
+  encryptedSavedObjects:
+    encryptionKey: aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb
+  reporting:
+    enabled: true
+    kibanaAppUrl: "http://localhost:5601"
+  ml:
+    enabled: true
+  watcher:
+    enabled: true
+  alerting:
+    enabled: true
+
+uiSettings:
+  defaults:
+    metrics:defaultIndex: ""
+    discover:sampleSize: 500
+    doc_table:highlight: true
+    format:defaultTypeMap: |-
+      {
+        "ip": { "id": "ip", "params": {} },
+        "binary": { "id": "binary", "params": {} },
+        "date": { "id": "date", "params": {} },
+        "date_nanos": { "id": "date_nanos", "params": {} },
+        "date_nanos_pretty": { "id": "date_nanos_pretty", "params": {} },
+        "date_pretty": { "id": "date_pretty", "params": {} },
+        "relative_date": { "id": "relative_date", "params": {} },
+        "duration": { "id": "duration", "params": {} },
+        "duration_inMilliseconds": { "id": "duration", "params": { "inputFormat": "milliseconds" } },
+        "duration_inSeconds": { "id": "duration", "params": { "inputFormat": "seconds" } },
+        "number": { "id": "number", "params": {} },
+        "number_pretty": { "id": "number_pretty", "params": {} },
+        "percent": { "id": "percent", "params": {} },
+        "string": { "id": "string", "params": {} },
+        "url": { "id": "url", "params": {} },
+        "text": { "id": "text", "params": {} },
+        "boolean": { "id": "boolean", "params": {} },
+        "object": { "id": "string", "params": {} },
+        "nested": { "id": "string", "params": {} },
+        "_source": { "id": "_source", "params": {} },
+        "_all": { "id": "_all", "params": {} }
+      }
+    defaultIndex: logs-*
+    defaultColumns:
+      - _source
+    maxUiTaskWorkerCount: 4
+    savedObjects:
+      maxImportExportSize: 10000
+    truncate:
+      maxHeight: 30
+  overrides: {}
+
+operations:
+  maxOldSpaceSize: 2048
+
+server:
+  cors:
+    origin: false
+
+# Time-based data
+timepicker:
+  timeDefaults:
+    from: now-15m
+    to: now
+  refreshIntervalDefaults:
+    pause: false
+    value: 10000
+
+# Maps
+maps:
+  includeElasticMapsService: true
+  proxyElasticMapsServiceInMaps: false
+  emsFileApiUrl: "https://vector.maps.elastic.co/files"
+  emsTileApiUrl: "https://tiles.maps.elastic.co/v2"
+  emsLandingPageUrl: "https://www.elastic.co/elastic-maps-service"
+  showRegionBlockedWarning: false
+
+# Alerts
+alerting:
+  rules:
+    enabled: true
+    run:
+      interval: "1m"
+    cleanup:
+      interval: "5m"
+  connectors:
+    default:
+      connectorTypeId: ".slack"
+
+# APM Integration
+apm:
+  serviceMapEnabled: true
+  serviceMapMaxRequests: 5
+  ui:
+    enabled: true
+    transactionGroupBucketSize: 1000
+    maxTraceItems: 5000
+
+# Fleet and Elastic Agent
+fleet:
+  enabled: false
+
+# Development
+dev:
+  enabled: false

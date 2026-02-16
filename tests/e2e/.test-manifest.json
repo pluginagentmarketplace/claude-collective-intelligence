@@ -1,0 +1,138 @@
+{
+  "testSuite": {
+    "name": "E2E Test Suite - Multi-Agent Orchestration",
+    "version": "1.0.0",
+    "created": "2025-11-17",
+    "totalFiles": 8,
+    "totalLines": 3823,
+    "tests": [
+      {
+        "id": "t1",
+        "name": "5-Terminal Scenario",
+        "file": "5-terminal-scenario.test.js",
+        "lines": 374,
+        "category": "functional",
+        "duration": "15-30s",
+        "description": "Tests complete multi-agent collaborative workflow with 5 terminals",
+        "features": [
+          "Agent startup (1 leader, 2 workers, 2 collaborators)",
+          "Collaborative task assignment",
+          "Brainstorm initiation and responses",
+          "Result aggregation",
+          "End-to-end message flow verification"
+        ]
+      },
+      {
+        "id": "t2",
+        "name": "Git Worktree Integration",
+        "file": "git-worktree.test.js",
+        "lines": 468,
+        "category": "integration",
+        "duration": "20-40s",
+        "description": "Tests agent coordination across multiple git worktrees",
+        "features": [
+          "Dynamic worktree creation",
+          "Branch isolation",
+          "Cross-worktree coordination",
+          "Conflict detection",
+          "Automatic cleanup"
+        ]
+      },
+      {
+        "id": "t3",
+        "name": "Failure Recovery",
+        "file": "failure-recovery.test.js",
+        "lines": 521,
+        "category": "resilience",
+        "duration": "25-45s",
+        "description": "Tests system resilience and recovery mechanisms",
+        "features": [
+          "Agent failure mid-task",
+          "Auto-retry logic",
+          "Task reassignment",
+          "Network interruption recovery",
+          "Message persistence"
+        ]
+      },
+      {
+        "id": "t4",
+        "name": "Scaling",
+        "file": "scaling.test.js",
+        "lines": 600,
+        "category": "scaling",
+        "duration": "30-60s",
+        "description": "Tests dynamic scaling and load balancing",
+        "features": [
+          "Scale up (2 → 5 workers)",
+          "Load balancing verification",
+          "Scale down (5 → 2 workers)",
+          "Rebalancing after changes",
+          "Performance comparison"
+        ]
+      },
+      {
+        "id": "t5",
+        "name": "Performance Benchmark",
+        "file": "performance.test.js",
+        "lines": 601,
+        "category": "performance",
+        "duration": "60-120s",
+        "description": "Comprehensive performance testing and analysis",
+        "features": [
+          "100 tasks across 5 workers",
+          "Throughput measurement",
+          "Latency percentiles (p50-p99)",
+          "Resource tracking (CPU, memory)",
+          "JSON report generation"
+        ]
+      }
+    ],
+    "infrastructure": [
+      {
+        "name": "Test Runner",
+        "file": "run-all.js",
+        "lines": 331,
+        "description": "Orchestrates all test execution with multiple modes"
+      },
+      {
+        "name": "README",
+        "file": "README.md",
+        "lines": 467,
+        "description": "Comprehensive documentation and troubleshooting guide"
+      },
+      {
+        "name": "Quick Start",
+        "file": "QUICKSTART.md",
+        "lines": 461,
+        "description": "Quick reference guide for running tests"
+      }
+    ],
+    "npmScripts": [
+      "test:e2e",
+      "test:e2e:quick",
+      "test:e2e:perf",
+      "test:e2e:verbose",
+      "test:e2e:5-terminal",
+      "test:e2e:worktree",
+      "test:e2e:failure",
+      "test:e2e:scaling",
+      "test:e2e:performance"
+    ],
+    "prerequisites": [
+      "RabbitMQ running on localhost:5672",
+      "Node.js >= 18",
+      "npm dependencies installed"
+    ],
+    "outputs": [
+      {
+        "type": "console",
+        "description": "Formatted test output with progress and results"
+      },
+      {
+        "type": "json",
+        "file": "performance-report.json",
+        "description": "Detailed performance metrics and analysis"
+      }
+    ]
+  }
+}

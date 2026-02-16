@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Agent Orchestrator API - Swagger UI</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.15.5/swagger-ui.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+
+    .swagger-ui {
+      background: white;
+    }
+
+    .topbar {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      color: white;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 600;
+    }
+
+    .topbar p {
+      margin: 8px 0 0 0;
+      opacity: 0.95;
+      font-size: 14px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+
+    .swagger-ui .topbar {
+      display: none;
+    }
+
+    .swagger-ui .info {
+      margin: 0;
+    }
+
+    .info-section {
+      padding: 20px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e8e8e8;
+    }
+
+    .info-section h2 {
+      color: #667eea;
+      margin-top: 0;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .feature-item {
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      border-left: 4px solid #667eea;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .feature-item h4 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+
+    .feature-item p {
+      margin: 0;
+      color: #666;
+      font-size: 13px;
+    }
+
+    .auth-info {
+      background: #e7f3ff;
+      border-left: 4px solid #2196F3;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+
+    .auth-info h3 {
+      margin-top: 0;
+      color: #1976D2;
+    }
+
+    .code-block {
+      background: #f5f5f5;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      margin: 10px 0;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 10px;
+    }
+
+    .status-success {
+      background: #c3e6cb;
+      color: #155724;
+    }
+
+    .status-info {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+
+    .status-warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .endpoint-group {
+      margin: 20px 0;
+      padding: 20px;
+      background: white;
+      border-radius: 6px;
+      border-left: 5px solid #667eea;
+    }
+
+    .endpoint-group h3 {
+      color: #667eea;
+      margin-top: 0;
+    }
+
+    .quick-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .quick-links a {
+      display: inline-block;
+      padding: 8px 16px;
+      background: #667eea;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+
+    .quick-links a:hover {
+      background: #764ba2;
+    }
+
+    .footer {
+      background: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid #e8e8e8;
+      color: #666;
+      font-size: 13px;
+    }
+
+    .api-status {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .status-item {
+      padding: 15px;
+      border-radius: 6px;
+      background: white;
+      border: 1px solid #e8e8e8;
+    }
+
+    .status-item .label {
+      color: #666;
+      font-size: 12px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .status-item .value {
+      color: #333;
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 5px;
+    }
+
+    .rate-limit-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+
+    .rate-limit-table th,
+    .rate-limit-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #e8e8e8;
+    }
+
+    .rate-limit-table th {
+      background: #f5f5f5;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .rate-limit-table tr:hover {
+      background: #f9f9f9;
+    }
+
+    /* Swagger UI customizations */
+    .swagger-ui .btn {
+      border-color: #667eea;
+      color: white;
+      background-color: #667eea;
+    }
+
+    .swagger-ui .btn:hover {
+      background-color: #764ba2;
+      border-color: #764ba2;
+    }
+
+    .swagger-ui .information-container {
+      margin: 0;
+    }
+
+    .swagger-ui .scheme-container {
+      background: white;
+      border-bottom: 1px solid #e8e8e8;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>AI Agent Orchestrator RabbitMQ API</h1>
+    <p>Interactive API Documentation - Swagger UI</p>
+  </div>
+
+  <div class="container">
+    <!-- Quick Navigation -->
+    <div class="info-section">
+      <h2>Quick Navigation</h2>
+      <div class="quick-links">
+        <a href="#overview">Overview</a>
+        <a href="#authentication">Authentication</a>
+        <a href="#rate-limiting">Rate Limiting</a>
+        <a href="#endpoints">Endpoints</a>
+        <a href="#swagger">Interactive API</a>
+        <a href="#support">Support</a>
+      </div>
+    </div>
+
+    <!-- Overview Section -->
+    <div class="info-section" id="overview">
+      <h2>Overview</h2>
+      <p>
+        The AI Agent Orchestrator API provides a comprehensive REST interface for managing
+        multi-agent distributed systems using RabbitMQ. This ultra-advanced system supports
+        task distribution, voting systems, achievements, and gamification features.
+      </p>
+
+      <h3>Key Features</h3>
+      <div class="feature-grid">
+        <div class="feature-item">
+          <h4>Multi-Agent Coordination</h4>
+          <p>Create and manage autonomous agents with different roles and capabilities</p>
+        </div>
+        <div class="feature-item">
+          <h4>Task Distribution</h4>
+          <p>Distribute and track tasks with advanced priority and resource management</p>
+        </div>
+        <div class="feature-item">
+          <h4>Democratic Voting</h4>
+          <p>Multiple voting algorithms including consensus, ranked choice, and quadratic voting</p>
+        </div>
+        <div class="feature-item">
+          <h4>Gamification</h4>
+          <p>Achievements, leaderboards, and reputation systems for performance tracking</p>
+        </div>
+        <div class="feature-item">
+          <h4>Health Monitoring</h4>
+          <p>Real-time health checks, metrics, and system readiness indicators</p>
+        </div>
+        <div class="feature-item">
+          <h4>Enterprise Security</h4>
+          <p>JWT authentication, RBAC, rate limiting, and comprehensive error handling</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Authentication Section -->
+    <div class="info-section" id="authentication">
+      <h2>Authentication</h2>
+      <p>The API supports two authentication methods:</p>
+
+      <h3>JWT Bearer Token</h3>
+      <p>Use for user/application authentication:</p>
+      <div class="code-block">
+Authorization: Bearer &lt;your_jwt_token&gt;
+      </div>
+      <p><strong>Token Expiration:</strong> Access Token: 15 minutes | Refresh Token: 7 days</p>
+
+      <h3>API Key</h3>
+      <p>Use for service-to-service communication:</p>
+      <div class="code-block">
+X-API-Key: &lt;your_api_key&gt;
+      </div>
+
+      <div class="auth-info">
+        <h3>Getting Started</h3>
+        <ol>
+          <li>Call <code>POST /auth/login</code> with your credentials</li>
+          <li>Receive <code>accessToken</code> and <code>refreshToken</code></li>
+          <li>Include token in <code>Authorization</code> header for all subsequent requests</li>
+          <li>When token expires, use <code>refreshToken</code> to get a new one</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Rate Limiting Section -->
+    <div class="info-section" id="rate-limiting">
+      <h2>Rate Limiting</h2>
+      <p>API requests are rate-limited to prevent abuse and ensure fair usage:</p>
+
+      <table class="rate-limit-table">
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>Requests/Minute</th>
+            <th>Requests/Hour</th>
+            <th>Use Case</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="status-badge status-info">Free</span></td>
+            <td>60</td>
+            <td>1,000</td>
+            <td>Development & Testing</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-info">Standard</span></td>
+            <td>300</td>
+            <td>10,000</td>
+            <td>Production Applications</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-success">Premium</span></td>
+            <td>1,000</td>
+            <td>100,000</td>
+            <td>Enterprise Services</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Rate Limit Headers</h3>
+      <p>Every response includes these headers:</p>
+      <div class="code-block">
+X-RateLimit-Limit: 300              # Total requests per minute
+X-RateLimit-Remaining: 287          # Requests remaining
+X-RateLimit-Reset: 1705315860       # Unix timestamp when limit resets
+      </div>
+
+      <h3>Exceeding Rate Limits</h3>
+      <p>When rate limit is exceeded, you'll receive a <code>429 Too Many Requests</code> response:</p>
+      <div class="code-block">
+{
+  "code": "RATE_LIMIT_EXCEEDED",
+  "message": "Rate limit exceeded. Maximum 300 requests per minute",
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+      </div>
+    </div>
+
+    <!-- Endpoints Section -->
+    <div class="info-section" id="endpoints">
+      <h2>API Endpoints</h2>
+
+      <div class="endpoint-group">
+        <h3>Agents</h3>
+        <p>Manage agent lifecycle (create, read, update, delete)</p>
+        <ul>
+          <li><span class="status-badge status-info">GET</span> <code>/api/v1/agents</code> - List agents</li>
+          <li><span class="status-badge status-success">POST</span> <code>/api/v1/agents</code> - Create agent</li>
+          <li><span class="status-badge status-info">GET</span> <code>/api/v1/agents/{agentId}</code> - Get agent</li>
+          <li><span class="status-badge status-warning">PUT</span> <code>/api/v1/agents/{agentId}</code> - Update agent</li>
+          <li><span class="status-badge status-error">DELETE</span> <code>/api/v1/agents/{agentId}</code> - Delete agent</li>
+        </ul>
+      </div>
+
+      <div class="endpoint-group">
+        <h3>Tasks</h3>
+        <p>Submit, manage, and track task execution</p>
+        <ul>
+          <li><span class="status-badge status-info">GET</span> <code>/api/v1/tasks</code> - List tasks</li>
+          <li><span class="status-badge status-success">POST</span> <code>/api/v1/tasks</code> - Submit task</li>
+          <li><span class="status-badge status-info">GET</span> <code>/api/v1/tasks/{taskId}</code> - Get task</li>
+          <li><span class="status-badge status-warning">PUT</span> <code>/api/v1/tasks/{taskId}</code> - Update task</li>
+          <li><span class="status-badge status-info">GET</span> <code>/api/v1/tasks/{taskId}/result</code> - Get result</li>
+          <li><span class="status-badge status-error">DELETE</span> <code>/api/v1/tasks/{taskId}</code> - Cancel task</li>
+        </ul>
+      </div>
+
+      <div class="endpoint-group">
+        <h3>Voting System</h3>
+        <p>Democratic decision-making with multiple algorithms</p>
+        <ul>
+          <li><span class="status-badge status-info">GET</span> <code>/api/v1/voting/sessions</code> - List sessions</li>
+          <li><span class="status-badge status-success">POST</span> <code>/api/v1/voting/sessions</code> - Create session</li>
+          <li><span class="status-badge status-info">GET</span> <code>/api/v1/voting/sessions/{sessionId}</code> - Get session</li>
+          <li><span class="status-badge status-success">POST</span> <code>/api/v1/voting/sessions/{sessionId}/vote</code> - Cast vote</li>
+          <li><span class="status-badge status-info">GET</span> <code>/api/v1/voting/sessions/{sessionId}/results</code> - Get results</li>
+        </ul>
+      </div>
+
+      <div class="endpoint-group">
+        <h3>Achievements</h3>
+        <p>Track performance and unlock gamification rewards</p>
+        <ul>
+          <li><span class="status-badge status-info">GET</span> <code>/api/v1/achievements</code> - List achievements</li>
+          <li><span class="status-badge status-success">POST</span> <code>/api/v1/achievements/claim</code> - Claim achievement</li>
+          <li><span class="status-badge status-info">GET</span> <code>/api/v1/achievements/leaderboard</code> - Get leaderboard</li>
+        </ul>
+      </div>
+
+      <div class="endpoint-group">
+        <h3>Health & Monitoring</h3>
+        <p>System health and readiness checks</p>
+        <ul>
+          <li><span class="status-badge status-info">GET</span> <code>/health</code> - Health check (no auth)</li>
+          <li><span class="status-badge status-info">GET</span> <code>/ready</code> - Readiness check (no auth)</li>
+          <li><span class="status-badge status-info">GET</span> <code>/metrics</code> - Prometheus metrics (no auth)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Swagger UI Section -->
+    <div id="swagger">
+      <div id="swagger-ui"></div>
+    </div>
+
+    <!-- Support Section -->
+    <div class="info-section" id="support">
+      <h2>Support & Resources</h2>
+
+      <h3>Documentation</h3>
+      <ul>
+        <li><a href="../docs/API.md" target="_blank">Complete API Reference (Markdown)</a></li>
+        <li><a href="../API_EXAMPLES.md" target="_blank">Code Examples (cURL, JavaScript, Python)</a></li>
+        <li><a href="../openapi.yaml" target="_blank">OpenAPI 3.0 Specification (YAML)</a></li>
+        <li><a href="../postman-collection.json" target="_blank">Postman Collection (JSON)</a></li>
+      </ul>
+
+      <h3>Contact</h3>
+      <ul>
+        <li><strong>Email:</strong> support@orchestrator.local</li>
+        <li><strong>Documentation:</strong> <a href="../docs/API.md" target="_blank">Full API Specification</a></li>
+        <li><strong>GitHub:</strong> <a href="https://github.com/umitkacar/plugin-ai-agent-rabbitmq" target="_blank">Repository</a></li>
+      </ul>
+
+      <h3>Common Issues</h3>
+      <ul>
+        <li><strong>401 Unauthorized:</strong> Check your authentication token is valid and not expired</li>
+        <li><strong>429 Rate Limited:</strong> Check <code>Retry-After</code> header and wait before retrying</li>
+        <li><strong>400 Bad Request:</strong> Validate your request body matches the schema</li>
+        <li><strong>404 Not Found:</strong> Ensure the resource ID exists and is spelled correctly</li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      <p>
+        AI Agent Orchestrator RabbitMQ API v1.0 |
+        <a href="https://github.com/umitkacar/plugin-ai-agent-rabbitmq" target="_blank">View on GitHub</a> |
+        <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.15.5/swagger-ui-standalone-preset.js"></script>
+  <script>
+    const ui = SwaggerUIBundle({
+      url: '../openapi.yaml',
+      dom_id: '#swagger-ui',
+      deepLinking: true,
+      presets: [
+        SwaggerUIBundle.presets.apis,
+        SwaggerUIStandalonePreset
+      ],
+      plugins: [
+        SwaggerUIBundle.plugins.DownloadUrl
+      ],
+      layout: 'StandaloneLayout',
+      defaultModelsExpandDepth: 1,
+      defaultModelExpandDepth: 2,
+      docExpansion: 'list',
+      requestInterceptor: (request) => {
+        // Add any global request modifications here
+        return request;
+      },
+      responseInterceptor: (response) => {
+        // Add any global response modifications here
+        return response;
+      }
+    });
+
+    window.onload = function() {
+      // Smooth scroll for navigation links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          const href = this.getAttribute('href');
+          if (href !== '#') {
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+              target.scrollIntoView({ behavior: 'smooth' });
+            }
+          }
+        });
+      });
+    };
+  </script>
+</body>
+</html>

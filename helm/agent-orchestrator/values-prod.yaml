@@ -1,0 +1,263 @@
+# Production-specific values
+# High availability, security hardened, optimized for performance
+
+replicaCount: 3
+
+image:
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+app:
+  environment: "production"
+  logLevel: "warn"
+
+service:
+  type: LoadBalancer
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "50"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-protocols: "TLSv1.2 TLSv1.3"
+    nginx.ingress.kubernetes.io/enable-modsecurity: "true"
+    nginx.ingress.kubernetes.io/enable-owasp-core-rules: "true"
+  hosts:
+    - host: api.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: agent-orchestrator-prod-tls
+      hosts:
+        - api.example.com
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: 70
+
+# Production Database - High Availability
+postgresql:
+  enabled: true
+  auth:
+    username: "prod_user"
+    password: "CHANGE_IN_PRODUCTION"
+    database: "agent_orchestrator_prod"
+  primary:
+    persistence:
+      enabled: true
+      size: 100Gi
+      storageClassName: "fast-ssd"
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+  replica:
+    replicaCount: 2
+    persistence:
+      enabled: true
+      size: 100Gi
+      storageClassName: "fast-ssd"
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+  metrics:
+    enabled: true
+  backup:
+    enabled: true
+    retentionDays: 30
+  ssl:
+    enabled: true
+
+# Production Redis - High Availability
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: "CHANGE_IN_PRODUCTION"
+  replica:
+    replicaCount: 2
+  master:
+    persistence:
+      enabled: true
+      size: 50Gi
+      storageClassName: "fast-ssd"
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  metrics:
+    enabled: true
+  cluster:
+    enabled: false  # Use sentinel instead for HA
+
+# Production RabbitMQ - Clustered
+rabbitmq:
+  enabled: true
+  auth:
+    username: "prod_user"
+    password: "CHANGE_IN_PRODUCTION"
+  replicaCount: 3
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClassName: "fast-ssd"
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  metrics:
+    enabled: true
+  clustering:
+    enabled: true
+  policies:
+    enabled: true
+
+# Production Monitoring - Full observability
+prometheus:
+  enabled: true
+  prometheusSpec:
+    retention: 30d
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+    storageSize: 100Gi
+
+grafana:
+  enabled: true
+  adminPassword: "CHANGE_IN_PRODUCTION"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  persistence:
+    enabled: true
+    size: 10Gi
+  dashboards:
+    enabled: true
+
+# Feature Flags - All enabled for production
+features:
+  auditLogging: true
+  distributedLocking: true
+  queryCaching: true
+  sessionPersistence: true
+  rateLimiting: true
+  metricsCollection: true
+
+# Production Backup - Daily + Weekly + Monthly
+backup:
+  enabled: true
+  schedule: "0 2 * * *"
+  retentionDays: 30
+  offsite:
+    enabled: true
+    destination: "s3://backups-prod"
+
+# Production Notifications
+notifications:
+  slack:
+    enabled: true
+    webhookUrl: "CHANGE_IN_PRODUCTION"
+    alertsOnly: false
+  email:
+    enabled: true
+    provider: "smtp"
+    host: "CHANGE_IN_PRODUCTION"
+    port: 587
+    alerts:
+      - "critical"
+      - "error"
+
+# Security - Production hardened
+security:
+  jwtSecret: "CHANGE_IN_PRODUCTION"
+  encryptionKey: "CHANGE_IN_PRODUCTION"
+  sessionSecret: "CHANGE_IN_PRODUCTION"
+  tls:
+    enabled: true
+    certManagerIssuer: "letsencrypt-prod"
+  networkPolicy:
+    enabled: true
+  podSecurityPolicy:
+    enabled: true
+  rbac:
+    enabled: true
+
+# Pod Disruption Budgets for high availability
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+# Node affinity for production
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: workload-type
+          operator: In
+          values:
+          - production
+        - key: node-role.kubernetes.io/master
+          operator: DoesNotExist
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+        matchExpressions:
+        - key: app
+          operator: In
+          values:
+          - agent-orchestrator
+      topologyKey: kubernetes.io/hostname
+
+# Environment-specific overrides
+env:
+  NODE_ENV: "production"
+  LOG_LEVEL: "warn"
+  FEATURES_AUDIT_LOGGING: "true"
+  FEATURES_DISTRIBUTED_LOCKING: "true"
+  PRODUCTION_MODE: "true"
+  ALLOW_INSECURE_CONNECTIONS: "false"

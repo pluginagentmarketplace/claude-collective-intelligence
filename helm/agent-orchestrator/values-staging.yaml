@@ -1,0 +1,176 @@
+# Staging-specific values
+# Inherits from values.yaml, only override staging-specific settings
+
+replicaCount: 2
+
+image:
+  tag: "staging"
+  pullPolicy: Always
+
+app:
+  environment: "staging"
+  logLevel: "info"
+
+service:
+  type: ClusterIP
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: staging-api.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: agent-orchestrator-staging-tls
+      hosts:
+        - staging-api.example.com
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Staging Database - Medium resources
+postgresql:
+  enabled: true
+  auth:
+    username: "staging_user"
+    password: "staging_secure_password"
+    database: "agent_orchestrator_staging"
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClassName: "standard"
+  replica:
+    replicaCount: 1
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClassName: "standard"
+  metrics:
+    enabled: true
+
+# Staging Redis - Medium resources
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: "redis_staging_password"
+  replica:
+    replicaCount: 1
+  master:
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClassName: "standard"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 250m
+      memory: 512Mi
+  metrics:
+    enabled: true
+
+# Staging RabbitMQ - Medium resources
+rabbitmq:
+  enabled: true
+  auth:
+    username: "staging_user"
+    password: "rabbitmq_staging_password"
+  replicaCount: 1
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClassName: "standard"
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  metrics:
+    enabled: true
+
+# Monitoring - Full stack for staging
+prometheus:
+  enabled: true
+  prometheusSpec:
+    retention: 15d
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+grafana:
+  enabled: true
+  adminPassword: "staging_grafana_password"
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+  # Auto-provision dashboards
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://prometheus:9090
+          isDefault: true
+
+# Feature Flags - All enabled for staging validation
+features:
+  auditLogging: true
+  distributedLocking: true
+  queryCaching: true
+  sessionPersistence: true
+  rateLimiting: true
+  metricsCollection: true
+
+# Backup enabled for staging
+backup:
+  enabled: true
+  schedule: "0 2 * * *"
+  retentionDays: 7
+
+# Enable notifications for staging
+notifications:
+  slack:
+    enabled: true
+    webhookUrl: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+  email:
+    enabled: false
+
+# Environment-specific overrides
+env:
+  NODE_ENV: "staging"
+  LOG_LEVEL: "info"
+  FEATURES_AUDIT_LOGGING: "true"
+  FEATURES_DISTRIBUTED_LOCKING: "true"

@@ -1,0 +1,89 @@
+{
+  "successfulTaskResult": {
+    "status": "completed",
+    "result": {
+      "success": true,
+      "data": {
+        "processed": true,
+        "output": "Mock successful output"
+      },
+      "message": "Task completed successfully"
+    },
+    "duration": 1500,
+    "metadata": {
+      "attempts": 1,
+      "errors": []
+    }
+  },
+  "failedTaskResult": {
+    "status": "failed",
+    "result": {
+      "success": false,
+      "error": {
+        "name": "TaskExecutionError",
+        "message": "Mock task execution failed",
+        "code": "EXECUTION_ERROR"
+      }
+    },
+    "duration": 2000,
+    "metadata": {
+      "attempts": 3,
+      "errors": [
+        "Attempt 1 failed: Connection timeout",
+        "Attempt 2 failed: Invalid response",
+        "Attempt 3 failed: Resource unavailable"
+      ]
+    }
+  },
+  "timeoutTaskResult": {
+    "status": "timeout",
+    "result": {
+      "success": false,
+      "error": {
+        "name": "TimeoutError",
+        "message": "Task execution timeout exceeded",
+        "code": "TIMEOUT"
+      }
+    },
+    "duration": 30000,
+    "metadata": {
+      "attempts": 1,
+      "errors": ["Execution timeout after 30000ms"]
+    }
+  },
+  "healthCheckResponse": {
+    "status": "healthy",
+    "timestamp": 1700000000000,
+    "checks": {
+      "rabbitmq": "connected",
+      "memory": "ok",
+      "cpu": "ok",
+      "tasks": "processing"
+    },
+    "metrics": {
+      "uptime": 3600000,
+      "totalTasks": 150,
+      "successfulTasks": 145,
+      "failedTasks": 5
+    }
+  },
+  "metricsResponse": {
+    "timestamp": 1700000000000,
+    "period": "last_hour",
+    "metrics": {
+      "tasksReceived": 100,
+      "tasksCompleted": 95,
+      "tasksFailed": 3,
+      "tasksInProgress": 2,
+      "averageProcessingTime": 2500,
+      "maxProcessingTime": 15000,
+      "minProcessingTime": 500,
+      "throughput": 1.66
+    },
+    "system": {
+      "cpuUsage": 45.2,
+      "memoryUsage": 512000000,
+      "activeConnections": 5
+    }
+  }
+}
